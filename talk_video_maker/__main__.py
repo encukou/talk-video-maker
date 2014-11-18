@@ -14,9 +14,10 @@ from dtw import dtw
 
 SAMPLE_RATE = 22050
 NUM_CORES = 4
-DTW_SIZE = 200
-DTW_MIN = 50
-DTW_DUTY = 3/4
+DTW_WINDOW_START_SIZE = 200
+DTW_WINDOW_DELTA = 5
+DTW_WINDOW_MIN_SIZE = 50
+DTW_HOP_RATIO = 3/4
 DTW_CUTOFF = 5000
 
 subprocess_lock = asyncio.Lock()
@@ -156,20 +157,22 @@ def get_audio_data(source_path_coro, temp_path):
 
 
 @asyncio.coroutine
-def get_dwt(cache_name, data1_coro, data2_coro):
+def get_wdwt_path(cache_name, data1_coro, data2_coro):
     try:
         f = open(cache_name, 'rb')
     except IOError:
         (y1, f1), (y2, f2) = yield from asyncio.gather(data1_coro, data2_coro)
         path1 = [0]
         path2 = [0]
-        dtw_size = DTW_SIZE
+        dtw_size = DTW_WINDOW_START_SIZE
         while path1[-1] < len(f1) - 1 and path2[-1] < len(f2) - 1:
             start1, start2 = path1[-1], path2[-1]
-            if dtw_size > DTW_MIN:
-                dtw_size -= 3
+            if dtw_size > DTW_WINDOW_MIN_SIZE:
+                dtw_size -= DTW_WINDOW_DELTA
+            else:
+                dtw_size = DTW_WINDOW_MIN_SIZE
             print('Correlating...', len(path1), start1, start2)
-            path_chunk_length = int(dtw_size * DTW_DUTY)
+            path_chunk_length = int(dtw_size * DTW_HOP_RATIO)
             dist, cost, path = dtw(f1[start1:start1+dtw_size],
                                 f2[start2:start2+dtw_size])
             path1.extend(path[0][:path_chunk_length] + start1)
@@ -184,7 +187,7 @@ def get_dwt(cache_name, data1_coro, data2_coro):
 
 @asyncio.coroutine
 def regress(config):
-    data = yield from get_dwt(
+    data = yield from get_wdwt_path(
         config['temp']['dtw_path'],
         get_audio_data(
             concatenated(config),
