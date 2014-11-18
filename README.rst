@@ -10,7 +10,7 @@ at different speeds.
 Installation
 ------------
 
-You'll want Python 3, and a version of librosa with this fix:
+You'll want Python 3, ffmpeg, and a version of librosa with this fix:
 https://github.com/bmcfee/librosa/pull/127
 
 Make sure you have requirements for various scientific-y libraries – some of
@@ -37,7 +37,7 @@ The directory should contain:
 * One .ogv file with the screen grab
 * One .yaml file with information for titles
 
-The program creates a bunch of cache files that begin with an underscore.
+The program creates a bunch of cache files named with a leading underscore.
 These allow the script to pick up where it left off if interrupted.
 
 
