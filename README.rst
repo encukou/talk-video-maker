@@ -15,6 +15,7 @@ https://github.com/bmcfee/librosa/pull/127
 
 Make sure you have requirements for various scientific-y libraries – some of
 those are:
+
 * Numpy - BLAS and a C compiler
 * PyYAML - libyaml-devel
 * Scipy - a Fortran compiler
@@ -26,9 +27,11 @@ After that, you just::
 Usage
 -----
 
-python -m talk_video_maker /path/to/the/sources
+Use::
 
-The selected directory should contain:
+    python -m talk_video_maker /path/to/the/sources
+
+The directory should contain:
 * One or more .mts files with the video from the camera
 * One .ogv file with the screen grab
 * One .yaml file with information for titles
