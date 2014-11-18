@@ -7,12 +7,17 @@ import contextlib
 from concurrent.futures import ThreadPoolExecutor
 
 import yaml
+import numpy
 import scipy.io.wavfile
 import librosa
 from dtw import dtw
 
 SAMPLE_RATE = 22050
 NUM_CORES = 4
+DTW_SIZE = 200
+DTW_MIN = 50
+DTW_DUTY = 3/4
+DTW_CUTOFF = 5000
 
 subprocess_lock = asyncio.Lock()
 _thread_executor = ThreadPoolExecutor(NUM_CORES)
@@ -32,6 +37,11 @@ def run_in_thread(func):
     return result
 
 
+@asyncio.coroutine
+def immediate(data):
+    return data
+
+
 def get_config(directory):
 
     result = {
@@ -40,6 +50,8 @@ def get_config(directory):
             'concat': str(directory / '_concat.mts'),
             'concat_audio': str(directory / '_concat.wav'),
             'screengrab_audio': str(directory / '_screengrab.wav'),
+            'dtw_path': str(directory / '_dtw_path.npy'),
+            'correlation_stats': str(directory / '_correlation_stats.npy'),
         },
         'sources': [],
     }
@@ -127,25 +139,75 @@ def extract_audio(source_path, result_path):
         raise
 
 @asyncio.coroutine
-def get_audio_data(source_path, temp_path):
+def get_audio_data(source_path_coro, temp_path):
+    source_path = yield from source_path_coro
     yield from extract_audio(source_path, temp_path)
 
     def job():
-        result = librosa.load(temp_path, sr=SAMPLE_RATE)
-        return result
+        signal, _sample_rate = librosa.load(temp_path, sr=SAMPLE_RATE)
+        mfcc = librosa.feature.mfcc(signal, SAMPLE_RATE, n_mfcc=10)
+        return signal, mfcc.T
 
     print('Getting audio data for %s' % source_path)
-    result, _sample_rate = yield from run_in_thread(job)
+    result = yield from run_in_thread(job)
     print('Got audio data for %s (%s samples = %ss)' % (
-        source_path, len(result), len(result) / SAMPLE_RATE))
+        source_path, len(result[0]), len(result[0]) / SAMPLE_RATE))
     return result
 
 
 @asyncio.coroutine
-def correlate(data1_coro, data2_coro):
-    y1, y2 = yield from asyncio.gather(data1_coro, data2_coro)
-    return len(y1), len(y2)
+def get_dwt(cache_name, data1_coro, data2_coro):
+    try:
+        f = open(cache_name, 'rb')
+    except IOError:
+        (y1, f1), (y2, f2) = yield from asyncio.gather(data1_coro, data2_coro)
+        path1 = [0]
+        path2 = [0]
+        dtw_size = DTW_SIZE
+        while path1[-1] < len(f1) - 1 and path2[-1] < len(f2) - 1:
+            start1, start2 = path1[-1], path2[-1]
+            if dtw_size > DTW_MIN:
+                dtw_size -= 3
+            print('Correlating...', len(path1), start1, start2)
+            path_chunk_length = int(dtw_size * DTW_DUTY)
+            dist, cost, path = dtw(f1[start1:start1+dtw_size],
+                                f2[start2:start2+dtw_size])
+            path1.extend(path[0][:path_chunk_length] + start1)
+            path2.extend(path[1][:path_chunk_length] + start2)
+        result = numpy.array([path1, path2])
+        with open(cache_name, 'wb') as f:
+            numpy.save(f, result)
+        return result
+    else:
+        with f:
+            return numpy.load(f)
 
+@asyncio.coroutine
+def regress(config):
+    data = yield from get_dwt(
+        config['temp']['dtw_path'],
+        get_audio_data(
+            concatenated(config),
+            config['temp']['concat_audio']
+        ),
+        get_audio_data(
+            immediate(config['screengrab']),
+            config['temp']['screengrab_audio']
+        ),
+    )
+    slope, intercept, r, p, stderr = scipy.stats.linregress(
+        data[:,DTW_CUTOFF:-DTW_CUTOFF])
+    frames = intercept * 1  # TODO
+    stats_filename = config['temp']['correlation_stats']
+    with open(stats_filename, 'wt', encoding='utf-8') as f:
+        def print_(*a, **ka):
+            print(*a, **ka)
+            print(*a, file=f, **ka)
+        print_('Screngrab is {}× faster'.format(slope))
+        #print_('Screngrab is shifted by {} frames'.format(frames))
+        print_('Correlation coefficient: {}'.format(r))
+        print_('Standard error of estimate: {}'.format(stderr))
+    return slope, intercept, r, stderr
 
 def main_coro():
     try:
@@ -157,18 +219,7 @@ def main_coro():
 
     print(yaml.safe_dump(config, default_flow_style=False))
 
-    results = yield from asyncio.gather(
-        correlate(
-            get_audio_data(
-                (yield from concatenated(config)),
-                config['temp']['concat_audio']
-            ),
-            get_audio_data(
-                config['screengrab'],
-                config['temp']['screengrab_audio']
-            ),
-        )
-    )
+    results = yield from regress(config)
     print(results)
 
 
