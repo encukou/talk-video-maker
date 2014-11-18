@@ -32,6 +32,7 @@ Use::
     python -m talk_video_maker /path/to/the/sources
 
 The directory should contain:
+
 * One or more .mts files with the video from the camera
 * One .ogv file with the screen grab
 * One .yaml file with information for titles
@@ -44,4 +45,4 @@ Pyvec-videomaker
 ----------------
 
 If you need a working script, try Martin Bílek's pyvec-videomaker:
-    https://bitbucket.org/fragariacz/pyvec-videomaker
+https://bitbucket.org/fragariacz/pyvec-videomaker
