@@ -4,3 +4,7 @@ scipy
 librosa
 dtw
 lxml
+
+# And additionally:
+# ffmpeg
+# inkscape

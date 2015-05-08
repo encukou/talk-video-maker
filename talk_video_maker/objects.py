@@ -65,12 +65,10 @@ class InputObject:
         stat = os.stat(filename)
         self.file_size = stat.st_size
         if self.is_big_file:
-            print('input (small):', filename)
             packed = struct.pack('!LL', self.file_size, int(stat.st_mtime))
             self.hash = hash_bytes(type(self).__name__.encode('utf-8'),
                                    bytes(filename, 'utf-8'), packed)
         else:
-            print('input (big):', filename)
             with open(filename, 'rb') as f:
                 self.bytes = f.read()
                 self.hash = hash_bytes(type(self).__name__.encode('utf-8'),
@@ -86,6 +84,9 @@ class Template(Object):
 
     def set_text(self, id, text):
         return RetextedTemplate(self, id, text)
+
+    def remove(self, id):
+        return ReducedTemplate(self, id)
 
     def _dom_copy(self):
         return lxml.etree.XML(lxml.etree.tostring(self.dom))
@@ -151,17 +152,12 @@ class ReducedTemplate(ModifiedTemplate):
     def _dom_copy(self):
         dom = self.parent._dom_copy()
         xpath = './/*[@id="{}"]'.format(self.id)
-        elems = dom.xpath(xpath)
-        if not elems:
-            raise LookupError('element {} not found in SVG'.format(self.id))
         for elem in dom.xpath(xpath):
-            regions = elem.findall('./{*}flowPara')
-            [elem] = regions
-            elem.text = self.text
+            dom.remove(elem)
         return dom
 
     def __repr__(self):
-        return '{s.parent}{{{s.id}->{s.text!r}}}'.format(s=self)
+        return '{s.parent}{{-{s.id}}}'.format(s=self)
 
 
 class TemplateElementSizes(Object):
@@ -218,6 +214,15 @@ class Video:
         h = sizes.get(id, 'h')
         return ResizedVideo(self, w, h)
 
+    def fade_in(self, t):
+        return FadedVideo(self, fade_in=t)
+
+    def fade_out(self, t):
+        return FadedVideo(self, fade_out=t)
+
+    def set_fps(self, fps):
+        return FPSVideo(self, fps)
+
 
 class InputVideo(Video, InputObject):
     pass
@@ -230,6 +235,19 @@ class ConcatenatedVideo(Video):
 
     def __repr__(self):
         return '({s.first}+{s.second})'.format(s=self)
+
+
+class FadedVideo(Video):
+    def __init__(self, parent, *, fade_in=0, fade_out=0):
+        self.parent = parent
+        self.fade_in = fade_in
+        self.fade_out = fade_out
+
+
+class FPSVideo(Video):
+    def __init__(self, parent, fps):
+        self.parent = parent
+        self.fps = fps
 
 
 class ResizedVideo(Video):

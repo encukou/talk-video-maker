@@ -2,6 +2,7 @@ import pprint
 
 from talk_video_maker import mainfunc, opts, correlate
 
+FPS = 25
 
 @mainfunc(__name__)
 def make_pyvo(
@@ -30,24 +31,24 @@ def make_pyvo(
     template = template.set_text('txt-url', url)
 
     screen_vid = screen_vid.resize_by_template(template, 'vid-screen')
+    screen_vid = screen_vid.set_fps(FPS)
 
     speaker_vid = speaker_vid.resize_by_template(template, 'vid-speaker')
+    speaker_vid = speaker_vid.set_fps(FPS)
 
-    speaker_vid = speaker_vid.fade_in(1)
-    speaker_vid = speaker_vid.fade_out(1)
-
-    screen_vid, speaker_vid = correlate(screen, speaker_vid)
-
-    max_length = max(screen_vid.length, speaker_vid.length)
-
-    sponsors = export_template.export_slide('slide-sponsors', 6)
+    sponsors = export_template.export_slide('slide-sponsors', 6, fps=FPS)
     sponsors = sponsors.resize_by_template(template, 'vid-screen')
 
-    last = export_template.export_slide('slide-last', 6)
+    last = export_template.export_slide('slide-last', 6, fps=FPS)
     last = last.resize_by_template(template, 'vid-screen')
 
-    main = screen_vid + sponsors + last
+    screen_vid = screen_vid + sponsors + last
 
-    page = export_template.export_page(main.length)
+    screen_vid, speaker_vid = correlate(screen_vid, speaker_vid)
 
-    return page | main | speaker_vid
+    page = export_template.export_page(screen_vid.length)
+
+    result = page | screen_vid | speaker_vid
+    result = result.set_audio(main)
+
+    return result
