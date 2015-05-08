@@ -1,8 +1,6 @@
 pyyaml
-blessings
-pygments
-aiohttp
 numpy
 scipy
 librosa
 dtw
+lxml
