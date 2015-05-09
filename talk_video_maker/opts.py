@@ -6,7 +6,8 @@ import os
 
 import yaml
 
-from .objects import InputTemplate, InputVideo
+from .templates import InputTemplate
+from .videos import InputVideo
 
 
 NOTHING = object()
