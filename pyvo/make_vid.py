@@ -23,6 +23,7 @@ def make_pyvo(
     export_template = template
     export_template = export_template.without('vid-screen')
     export_template = export_template.without('vid-speaker')
+    export_template = export_template.without('qr-code')
 
     template = template.with_text('txt-speaker', speaker + ':')
     template = template.with_text('txt-title', title)
@@ -42,7 +43,7 @@ def make_pyvo(
     last = export_template.exported_slide('slide-last', 6, fps=FPS)
     last = last.resized_by_template(template, 'vid-screen')
 
-    screen_vid = screen_vid + sponsors + last
+    #screen_vid = screen_vid + sponsors + last
 
     screen_vid, speaker_vid = correlated(screen_vid, speaker_vid)
 

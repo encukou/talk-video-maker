@@ -27,7 +27,7 @@ class Template(objects.Object):
             self._dom = self.get_dom()
             return self._dom
 
-    def saved_to(self, filename):
+    def save_to(self, filename):
         str = lxml.etree.tostring(self.dom, pretty_print=True)
         with open(filename, 'wb') as f:
             f.write(str)
@@ -38,11 +38,12 @@ class Template(objects.Object):
         return videos.ImageVideo(pic, time, fps=fps)
 
     def exported_picture(self, id):
+        sizes = TemplateElementSizes(self)
         def write_image(filename):
             run(['inkscape',
                  '--export-png', filename,
+                 '--export-area-snap',
                  '--export-id', id,
-                 '--export-area-drawing',
                  self.filename])
         pic_hash = hash_bytes(self.hash.encode('utf-8'),
                               id.encode('utf-8'))

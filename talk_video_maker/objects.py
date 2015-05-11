@@ -40,6 +40,8 @@ class Object:
             except FileNotFoundError:
                 pass
             raise
+        if not os.path.exists(filename):
+            raise RuntimeError('file not saved to {}'.format(filename))
         self._filename = filename
         return filename
 
