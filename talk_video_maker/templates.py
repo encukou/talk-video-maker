@@ -10,10 +10,10 @@ class Template(objects.Object):
     is_big_file = False
     ext = '.svg'
 
-    def set_text(self, id, text):
+    def with_text(self, id, text):
         return RetextedTemplate(self, id, text)
 
-    def remove(self, id):
+    def without(self, id):
         return ReducedTemplate(self, id)
 
     def _dom_copy(self):
@@ -27,17 +27,17 @@ class Template(objects.Object):
             self._dom = self.get_dom()
             return self._dom
 
-    def save_to(self, filename):
+    def saved_to(self, filename):
         str = lxml.etree.tostring(self.dom, pretty_print=True)
         with open(filename, 'wb') as f:
             f.write(str)
 
-    def export_slide(self, id, time, *, fps):
+    def exported_slide(self, id, time, *, fps):
         from . import videos
-        pic = self.export_picture(id)
+        pic = self.exported_picture(id)
         return videos.ImageVideo(pic, time, fps=fps)
 
-    def export_picture(self, id):
+    def exported_picture(self, id):
         def write_image(filename):
             run(['inkscape',
                  '--export-png', filename,

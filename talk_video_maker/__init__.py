@@ -1,4 +1,4 @@
 from .main import mainfunc
-from .correlation import correlate
+from .correlation import correlated
 
-__all__ = 'mainfunc', 'correlate'
+__all__ = 'mainfunc', 'correlated'

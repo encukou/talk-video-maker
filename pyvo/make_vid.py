@@ -1,6 +1,6 @@
 import pprint
 
-from talk_video_maker import mainfunc, opts, correlate
+from talk_video_maker import mainfunc, opts, correlated
 
 FPS = 25
 
@@ -21,34 +21,34 @@ def make_pyvo(
         date: opts.DateOption(help='Date of the event'),
         ):
     export_template = template
-    export_template = export_template.remove('vid-screen')
-    export_template = export_template.remove('vid-speaker')
+    export_template = export_template.without('vid-screen')
+    export_template = export_template.without('vid-speaker')
 
-    template = template.set_text('txt-speaker', speaker + ':')
-    template = template.set_text('txt-title', title)
-    template = template.set_text('txt-event', event)
-    template = template.set_text('txt-date', date.strftime('%Y-%m-%d'))
-    template = template.set_text('txt-url', url)
+    template = template.with_text('txt-speaker', speaker + ':')
+    template = template.with_text('txt-title', title)
+    template = template.with_text('txt-event', event)
+    template = template.with_text('txt-date', date.strftime('%Y-%m-%d'))
+    template = template.with_text('txt-url', url)
 
-    screen_vid = screen_vid.resize_by_template(template, 'vid-screen')
-    screen_vid = screen_vid.set_fps(FPS)
+    screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
+    screen_vid = screen_vid.with_fps(FPS)
 
-    speaker_vid = speaker_vid.resize_by_template(template, 'vid-speaker')
-    speaker_vid = speaker_vid.set_fps(FPS)
+    speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
+    speaker_vid = speaker_vid.with_fps(FPS)
 
-    sponsors = export_template.export_slide('slide-sponsors', 6, fps=FPS)
-    sponsors = sponsors.resize_by_template(template, 'vid-screen')
+    sponsors = export_template.exported_slide('slide-sponsors', 6, fps=FPS)
+    sponsors = sponsors.resized_by_template(template, 'vid-screen')
 
-    last = export_template.export_slide('slide-last', 6, fps=FPS)
-    last = last.resize_by_template(template, 'vid-screen')
+    last = export_template.exported_slide('slide-last', 6, fps=FPS)
+    last = last.resized_by_template(template, 'vid-screen')
 
     screen_vid = screen_vid + sponsors + last
 
-    screen_vid, speaker_vid = correlate(screen_vid, speaker_vid)
+    screen_vid, speaker_vid = correlated(screen_vid, speaker_vid)
 
-    page = export_template.export_page(screen_vid.length)
+    page = export_template.exported_page(screen_vid.length)
 
     result = page | screen_vid | speaker_vid
-    result = result.set_audio(main)
+    result = result.with_audio(main)
 
     return result
