@@ -1,2 +1,6 @@
 __pycache__/
 __filecache__/
+/build/
+/*.egg-info/
+*.so
+/cdtw.c

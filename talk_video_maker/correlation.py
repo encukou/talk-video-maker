@@ -1,20 +1,20 @@
 from concurrent.futures import ThreadPoolExecutor
 
 import librosa
-from dtw import dtw
 import numpy
 import scipy
 
 from . import objects, templates
 from .objects import hash_bytes, run
+from .cdtw import dtw
 
 SAMPLE_RATE = 22050
-DTW_WINDOW_START_SIZE = 2000
-DTW_WINDOW_DELTA = 5
-DTW_WINDOW_MIN_SIZE = 50
 DTW_HOP_RATIO = 3/4
-DTW_CUTOFF = 5000
+DTW_CUTOFF = 500
 STFT_HOP_LENGTH = 512
+DTW_WINDOW_LENGTH = 120  # seconds
+
+DTW_WINDOW_SIZE = DTW_WINDOW_LENGTH * SAMPLE_RATE // STFT_HOP_LENGTH
 
 thread_executor = ThreadPoolExecutor(1)  # XXX: higher value
 
@@ -78,22 +78,17 @@ def get_wdwt_path(data1, data2):
     y2, f2 = data2
     path1 = [0]
     path2 = [0]
-    dtw_size = DTW_WINDOW_START_SIZE
+    path_chunk_length = int(DTW_WINDOW_SIZE * DTW_HOP_RATIO)
     while path1[-1] < len(f1) - 1 and path2[-1] < len(f2) - 1:
         start1, start2 = path1[-1], path2[-1]
         print('Correlating... {}/{} {}/{} (~{}%), {} vs {}, sz {}'.format(
             len(path1), len(f1), len(path2), len(f2),
             int(min(len(path1)/len(f1), len(path2)/len(f2))*100),
-            start1, start2, dtw_size))
-        path_chunk_length = int(dtw_size * DTW_HOP_RATIO)
-        dist, cost, path = dtw(f1[start1:start1+dtw_size],
-                            f2[start2:start2+dtw_size])
+            start1, start2, DTW_WINDOW_SIZE))
+        dist, cost, path = dtw(f1[start1:start1+DTW_WINDOW_SIZE],
+                            f2[start2:start2+DTW_WINDOW_SIZE])
         path1.extend(path[0][:path_chunk_length] + start1)
         path2.extend(path[1][:path_chunk_length] + start2)
-        if dtw_size > DTW_WINDOW_MIN_SIZE:
-            dtw_size -= DTW_WINDOW_DELTA
-        else:
-            dtw_size = DTW_WINDOW_MIN_SIZE
     return numpy.array([path1, path2])
 
 
