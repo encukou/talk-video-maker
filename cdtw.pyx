@@ -1,27 +1,28 @@
 import numpy as np
 
-cimport numpy as np
+cimport numpy as cnp
 cimport cython
 
 DTYPE = np.float
-ctypedef np.float_t DTYPE_t
+ctypedef cnp.float_t DTYPE_t
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def dtw(input1, input2):
-    cdef np.ndarray[DTYPE_t, ndim=2] a = np.array(input1, dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=2] b = np.array(input2, dtype=DTYPE)
+    cdef DTYPE_t[:, ::1] a = np.array(input1, dtype=DTYPE, order='C')
+    cdef DTYPE_t[:, ::1] b = np.array(input2, dtype=DTYPE, order='C')
 
     cdef unsigned int a_len = a.shape[0]
     cdef unsigned int b_len = b.shape[0]
     cdef unsigned int v_len = a.shape[1]
     assert v_len == b.shape[1]
-    cdef np.ndarray[DTYPE_t, ndim=2] cost = np.zeros([a_len, b_len], dtype=DTYPE)
+    cdef DTYPE_t[:, ::1] cost = np.zeros([a_len, b_len], dtype=DTYPE, order='C')
     cdef unsigned int i, j, k
     cdef DTYPE_t s, t, u
     cdef unsigned int bt_len = a_len + b_len
-    cdef np.ndarray[np.uint_t, ndim=1] path_a = np.zeros([bt_len], dtype=np.uint)
-    cdef np.ndarray[np.uint_t, ndim=1] path_b = np.zeros([bt_len], dtype=np.uint)
+    cdef cnp.uint_t[::1] path_a = np.zeros([bt_len], dtype=np.uint, order='C')
+    cdef cnp.uint_t[::1] path_b = np.zeros([bt_len], dtype=np.uint, order='C')
 
     with nogil:
         # Cython currently does not check if Python objects are manipulated
