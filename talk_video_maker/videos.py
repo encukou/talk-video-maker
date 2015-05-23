@@ -31,6 +31,9 @@ class AVObject(objects.Object):
     def __add__(self, other):
         return ConcatenatedAV(self, other)
 
+    def __or__(self, other):
+        return OverlaidAV(self, other)
+
     def resized_by_template(self, template, id):
         sizes = templates.TemplateElementSizes(template)
         streams = self.streams
@@ -46,6 +49,7 @@ class AVObject(objects.Object):
             y=sizes.get(id, 'y'),
             w=template.width,
             h=template.height,
+            color='00000000',
         ))
         streams = tuple(streams)
         for stream in streams:
@@ -79,15 +83,22 @@ class AVObject(objects.Object):
         args = {'sample_fmts': format}
         if sample_rate:
             args['sample_rates'] = sample_rate
-        streams = self.streams
+        streams = [s for s in self.streams if s.type == 'audio']
         streams = filter_streams(streams, {'audio'}, 'aformat', args)
         return AVObject(streams, acodec='pcm_s16le', format='wav')
+
+    def muted(self):
+        streams = [s for s in self.streams if s.type != 'audio']
+        return AVObject(streams)
 
     def save_to(self, filename):
         print(self.graph)
         print(filename)
         specs = ' ; '.join(self.filter_spec)
         print(specs)
+        maps = []
+        for i, s in enumerate(self.streams):
+            maps.extend(['-map', '[out{}]'.format(i)])
         run(['ffmpeg',
              '-filter_complex', specs,
              '-f', self.format,
@@ -96,6 +107,7 @@ class AVObject(objects.Object):
              '-crf', '30',
              '-maxrate', '5000k',
              '-strict', '-2',
+             ] + maps + [
              filename])
         return
 
@@ -157,7 +169,7 @@ class ConcatenatedAV(AVObject):
                 if audios:
                     [audio] = audios
                 else:
-                    [audio] = generate_silence().outputs
+                    [audio] = generate_silence(duration=video.duration).outputs
                 inputs.append([video, audio])
             else:
                 inputs.append([video])
@@ -165,9 +177,26 @@ class ConcatenatedAV(AVObject):
         super().__init__(streams)
 
 
+class OverlaidAV(AVObject):
+    def __init__(self, *parts):
+        flattened = []
+        for part in parts:
+            if isinstance(part, OverlaidAV):
+                flattened.extend(part.parts)
+            else:
+                flattened.append(part)
+        self.parts = parts = flattened
+
+        videos = [s for p in parts for s in p.streams if s.type == 'video']
+        audios = [s for p in parts for s in p.streams if s.type == 'audio']
+
+        streams = filter_overlay(videos).outputs + filter_amix(audios).outputs
+        super().__init__(streams)
+
+
 class ImageVideo(AVObject):
     def __init__(self, image, time, fps):
-        streams = filter_movie(image.filename, ['dv']).outputs
+        streams = filter_movie(image.filename, ['dv'], duration=time).outputs
         super().__init__(streams)
 
 
@@ -210,30 +239,33 @@ class Stream:
 class VideoStream(Stream):
     type = 'video'
 
-    def __init__(self, size):
+    def __init__(self, size, duration):
         super().__init__()
         self.size = size
+        self.duration = duration
 
     def copy(self):
-        return type(self)(size=self.size)
+        return type(self)(size=self.size, duration=self.duration)
 
 
 class AudioStream(Stream):
     type = 'audio'
 
 
-def gen_names():
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+def gen_names(prefix='', alphabet='abcdefghijklmnopqrstuvwxyz'):
     n = 1
     while True:
         for c in itertools.combinations_with_replacement(alphabet, n):
-            yield ''.join(c)
+            yield prefix + ''.join(c)
         n += 1
 
 
 def generate_filter_specifications(streams):
     names_iter = gen_names()
     get_name = lambda: next(names_iter)
+
+    outnames_iter = gen_names('out', '0123456789')
+    get_outname = lambda: next(outnames_iter)
 
     end = Filter('output', {}, streams, ())
     stream_names = {}
@@ -271,7 +303,6 @@ def generate_filter_specifications(streams):
         filter = unprocessed.pop()
         filterspec = filter.name
         if filter.arg_tuples:
-            # XXX: Quoting
             filterspec += '=' + ':'.join(
                 '{}={}'.format(n, quote(v)) for n, v in filter.arg_tuples)
         f = [], filterspec, [], filter
@@ -290,7 +321,11 @@ def generate_filter_specifications(streams):
                 stream_names[new_name_2] = new_name_2
                 used_name = new_name_2
             else:
-                used_name = stream_names[inp] = get_name()
+                if filter is end:
+                    name = get_outname()
+                else:
+                    name = get_name()
+                used_name = stream_names[inp] = name
             f[0].append(used_name)
             if inp.source not in seen_filters:
                 unprocessed.append(inp.source)
@@ -309,8 +344,7 @@ def generate_filter_specifications(streams):
                     None))
     for inputs, filterspec, outputs, filter in reversed(processed):
         if filter is end:
-            yield ';'.join('[{}] {}'.format(n, null_names[s.type]) for n, s in zip(
-                inputs, end.inputs))
+            pass
         else:
             yield '{} {} {}'.format(
                 ''.join('[{}]'.format(p) for p in inputs),
@@ -355,7 +389,7 @@ def filter_streams(streams, types, name, args):
             yield stream
 
 
-def filter_movie(filename, stream_specs=('dv', 'da')):
+def filter_movie(filename, stream_specs=('dv', 'da'), duration=None):
     outputs = []
     info = json.loads(run([
         'ffprobe',
@@ -372,7 +406,8 @@ def filter_movie(filename, stream_specs=('dv', 'da')):
             else:
                 raise LookupError('no stream')
             size = int(sinfo['width']), int(sinfo['height'])
-            outputs.append(VideoStream(size=size))
+            s_duration = duration or float(sinfo['duration'])
+            outputs.append(VideoStream(size=size, duration=s_duration))
         elif stream_spec == 'da':
             outputs.append(AudioStream())
         else:
@@ -394,7 +429,7 @@ def filter_color(duration, width, height):
               'duration': duration,
         },
         inputs=(),
-        outputs=tuple([VideoStream(size=(width, height))]),
+        outputs=tuple([VideoStream(size=(width, height), duration=duration)]),
     )
 
 
@@ -406,13 +441,14 @@ def filter_concat(groups):
     length = len(groups[0])
     if any(len(g) != length for g in groups):
         raise ValueError('Uneven stream group length')
+    duration = sum(g[0].duration for g in groups)
     for group in zip(*groups):
         tp = group[0].type
         if any(s.type != tp for s in group):
             raise ValueError('Incompatible stream types: {}'.format(
                 [s.type for s in group]))
         if tp == 'video':
-            outputs.append(VideoStream(group[0].size))
+            outputs.append(VideoStream(size=group[0].size, duration=duration))
             if in_audio:
                 raise ValueError('Video streams must come before audio streams')
             num_video += 1
@@ -441,6 +477,21 @@ def filter_amix(audios):
         outputs=[AudioStream()])
 
 
+def filter_overlay(videos, repeatlast=False):
+    if not all(s.type == 'video' for s in videos):
+        raise ValueError('Attempting to overlay non-video streams')
+    base = videos[0]
+    filter = base.source
+    for v in videos[1:]:
+        filter = Filter(
+            name='overlay',
+            args={'repeatlast': 1 if repeatlast else 0},
+            inputs=(base, v),
+            outputs=[VideoStream(base.size, duration=base.duration)])
+        [base] = filter.outputs
+    return filter
+
+
 def filter_aformat(audios, channel_layouts=None):
     if not all(s.type == 'audio' for s in audios):
         raise ValueError('Attempting to aformat non-audio streams')
@@ -455,10 +506,10 @@ def filter_aformat(audios, channel_layouts=None):
 
 
 @functools.lru_cache()
-def generate_silence():
+def generate_silence(duration):
     return Filter(
         name='aevalsrc',
-        args={'exprs': 0},
+        args={'exprs': 0, 'duration': duration},
         inputs=(),
         outputs=[AudioStream()],
     )

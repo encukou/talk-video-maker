@@ -32,14 +32,18 @@ class Object:
             os.makedirs(os.path.dirname(filename))
         except FileExistsError:
             pass
+        if os.path.exists(filename + '~'):
+            os.unlink(filename + '~')
         try:
-            self.save_to(filename)
+            self.save_to(filename + '~')
         except Exception:
             try:
-                os.unlink(filename)
+                os.unlink(filename + '~')
             except FileNotFoundError:
                 pass
             raise
+        else:
+            os.rename(filename + '~', filename)
         if not os.path.exists(filename):
             raise RuntimeError('file not saved to {}'.format(filename))
         self._filename = filename
@@ -50,8 +54,9 @@ class Object:
         try:
             return self._filename
         except:
-            self._filename = self.save()
-            return self._filename
+            pass
+        self._filename = self.save()
+        return self._filename
     @filename.setter
     def filename(self, new):
         self._filename = new

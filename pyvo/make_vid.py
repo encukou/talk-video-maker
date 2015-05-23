@@ -46,12 +46,10 @@ def make_pyvo(
     #screen_vid = screen_vid + sponsors + last
 
     screen_vid, speaker_vid = correlated(screen_vid, speaker_vid)
-    print((screen_vid + speaker_vid).graph)
-    print((screen_vid + speaker_vid).filter_spec)
+    screen_vid = screen_vid.muted()
 
     page = export_template.exported_page(screen_vid.length)
 
     result = page | screen_vid | speaker_vid
-    result = result.with_audio(main)
 
     return result
