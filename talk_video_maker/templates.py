@@ -32,10 +32,13 @@ class Template(objects.Object):
         with open(filename, 'wb') as f:
             f.write(str)
 
-    def exported_slide(self, id, time, *, fps):
+    def exported_slide(self, id=None, *, duration):
         from . import videos
-        pic = self.exported_picture(id)
-        return videos.ImageVideo(pic, time, fps=fps)
+        if id is None:
+            pic = self.exported_page()
+        else:
+            pic = self.exported_picture(id)
+        return videos.make_image_video(pic, duration)
 
     def exported_picture(self, id):
         sizes = TemplateElementSizes(self)
@@ -43,10 +46,22 @@ class Template(objects.Object):
             run(['inkscape',
                  '--export-png', filename,
                  '--export-area-snap',
+                 '--export-background', '#ffffff00',
                  '--export-id', id,
                  self.filename])
         pic_hash = hash_bytes(self.hash.encode('utf-8'),
                               id.encode('utf-8'))
+        return GeneratedImage(pic_hash.encode('utf-8'), write_image)
+
+    def exported_page(self):
+        sizes = TemplateElementSizes(self)
+        def write_image(filename):
+            run(['inkscape',
+                 '--export-png', filename,
+                 '--export-area-page',
+                 '--export-background', '#ffffff00',
+                 self.filename])
+        pic_hash = hash_bytes(self.hash.encode('utf-8'))
         return GeneratedImage(pic_hash.encode('utf-8'), write_image)
 
     @property

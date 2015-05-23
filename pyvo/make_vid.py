@@ -37,19 +37,23 @@ def make_pyvo(
     speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
     speaker_vid = speaker_vid.with_fps(FPS)
 
-    sponsors = export_template.exported_slide('slide-sponsors', 6, fps=FPS)
+    sponsors = export_template.exported_slide('slide-sponsors', duration=6)
     sponsors = sponsors.resized_by_template(template, 'vid-screen')
 
-    last = export_template.exported_slide('slide-last', 6, fps=FPS)
+    last = export_template.exported_slide('slide-last', duration=6)
     last = last.resized_by_template(template, 'vid-screen')
 
-    #screen_vid = screen_vid + sponsors + last
+    screen_vid = screen_vid + sponsors + last
 
     screen_vid, speaker_vid = correlated(screen_vid, speaker_vid)
     screen_vid = screen_vid.muted()
 
-    page = export_template.exported_page(screen_vid.length)
+    duration = max(screen_vid.duration, speaker_vid.duration)
+
+    page = export_template.exported_slide(duration=duration)
 
     result = page | screen_vid | speaker_vid
+
+    exit(result.filename)
 
     return result

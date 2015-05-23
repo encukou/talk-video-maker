@@ -85,7 +85,7 @@
        xlink:href="#Main_Background"
        id="linearGradient4334"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(3.4991419e-5,-2.1985718e-5)"
+       gradientTransform="translate(3.4991419e-5,-2.3797143e-5)"
        x1="475.71429"
        y1="-683"
        x2="475.71429"
@@ -95,7 +95,7 @@
        xlink:href="#Main_Background"
        id="linearGradient4362"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(4.6960063e-5,-2.1985718e-5)"
+       gradientTransform="translate(4.6960063e-5,-2.3797143e-5)"
        x1="475.71429"
        y1="-683"
        x2="475.71429"
@@ -108,9 +108,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="1049.6869"
-     inkscape:cy="528.92071"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="2249.3868"
+     inkscape:cy="890.26205"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -119,7 +119,9 @@
      inkscape:window-height="1034"
      inkscape:window-x="24"
      inkscape:window-y="-3"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -228,12 +230,12 @@
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
-         width="328.57144"
-         height="328.57144"
-         preserveAspectRatio="none"
-         id="image9399"
+         y="-373"
          x="75.851723"
-         y="-373" />
+         id="image9399"
+         preserveAspectRatio="none"
+         height="328.57144"
+         width="328.57144" />
       <g
          transform="matrix(0.72218938,-0.27571945,0.27571945,0.72218938,707.74034,-276.12693)"
          id="g9711">
@@ -250,7 +252,7 @@
       </g>
     </g>
     <rect
-       y="-929.47723"
+       y="-683"
        x="2127.3813"
        height="1080"
        width="1440"
@@ -261,10 +263,10 @@
        inkscape:label="#flowRoot3366"
        xml:space="preserve"
        id="flowRoot4336"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.08785292px;line-height:125%;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#d9f4ff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
-       transform="matrix(2.2157336,0,0,2.2157336,2300.2767,-1574.5352)"><flowRegion
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.08785248px;line-height:125%;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#d9f4ff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(2.2157336,0,0,2.2157336,2300.2767,-1328.0579)"><flowRegion
          id="flowRegion4338"><rect
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.08785292px;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';fill:#d9f4ff;fill-opacity:1;"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.08785248px;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';fill:#d9f4ff;fill-opacity:1"
            id="rect4340"
            width="456.58896"
            height="66.670082"
@@ -276,9 +278,9 @@
        width="22.857143"
        height="48.571438"
        x="2835.9529"
-       y="-988.71429" />
+       y="-742.23706" />
     <rect
-       y="160.83929"
+       y="407.31653"
        x="2835.9529"
        height="48.571438"
        width="22.857143"
@@ -290,14 +292,14 @@
        width="1440"
        height="1080"
        x="3654.7319"
-       y="-929.47723"
+       y="-683"
        inkscape:label="#rect4348" />
     <flowRoot
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:66.66666412px;line-height:125%;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#d9f4ff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="flowRoot4350"
        xml:space="preserve"
        inkscape:label="#flowRoot3366"
-       transform="translate(20.716182,0)"><flowRegion
+       transform="translate(20.716182,246.47722)"><flowRegion
          id="flowRegion4352"><rect
            y="-802.02063"
            x="3872.3918"
@@ -306,7 +308,7 @@
            id="rect4354"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:66.66666412px;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';fill:#d9f4ff;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara4356">Další informace · More information</flowPara></flowRoot>    <rect
-       y="-988.71423"
+       y="-742.237"
        x="4363.3037"
        height="44.530811"
        width="22.857143"
@@ -318,17 +320,17 @@
        width="22.857143"
        height="48.571438"
        x="4363.3037"
-       y="160.83929" />
+       y="407.31653" />
     <rect
        style="opacity:0.42000002;fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="qrcode"
        width="593.96967"
        height="593.96967"
        x="4077.7471"
-       y="-549.74146"
+       y="-303.26422"
        inkscape:label="#rect4364" />
     <flowRoot
-       transform="translate(21.404545,124)"
+       transform="translate(21.404545,370.47722)"
        inkscape:label="#flowRoot3366"
        xml:space="preserve"
        id="txt-url"

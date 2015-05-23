@@ -126,6 +126,15 @@ class AVObject(objects.Object):
         raise AttributeError('height')
 
     @property
+    def duration(self):
+        for stream in self.streams:
+            try:
+                return getattr(stream, 'duration')
+            except AttributeError:
+                pass
+        raise AttributeError('duration')
+
+    @property
     def graph(self):
         return '\n'.join(draw_graph(self.streams))
 
@@ -190,15 +199,29 @@ class OverlaidAV(AVObject):
         videos = [s for p in parts for s in p.streams if s.type == 'video']
         audios = [s for p in parts for s in p.streams if s.type == 'audio']
 
-        streams = filter_overlay(videos).outputs + filter_amix(audios).outputs
+        streams = []
+        if len(videos) == 1:
+            streams.extend(videos)
+        elif videos:
+            streams.extend(filter_overlay(videos).outputs)
+        if len(audios) == 1:
+            streams.extend(audios)
+        elif audios:
+            streams.extend(filter_amix(audios).outputs)
         super().__init__(streams)
 
 
 class ImageVideo(AVObject):
-    def __init__(self, image, time, fps):
-        streams = filter_movie(image.filename, ['dv'], duration=time).outputs
+    def __init__(self, image, duration, fps):
+        img = filter_movie(image.filename, ['dv'], duration=duration)
+        blank = generate_blank(duration, *img.outputs[0].size)
+        overlay = filter_overlay(blank.outputs + img.outputs, repeatlast=True)
+        streams = overlay.outputs
         super().__init__(streams)
 
+
+def make_image_video(image, duration):
+    return ImageVideo(image, duration, fps=30)
 
 class Stream:
     attr_names = frozenset()
@@ -389,7 +412,7 @@ def filter_streams(streams, types, name, args):
             yield stream
 
 
-def filter_movie(filename, stream_specs=('dv', 'da'), duration=None):
+def filter_movie(filename, stream_specs=('dv', 'da'), duration=None, loop=None):
     outputs = []
     info = json.loads(run([
         'ffprobe',
@@ -398,6 +421,9 @@ def filter_movie(filename, stream_specs=('dv', 'da'), duration=None):
         filename
     ]).decode('utf-8'))
     print(info)
+    args = {'filename': filename, 'streams': '+'.join(stream_specs)}
+    if loop:
+        args['loop'] = loop
     for stream_spec in stream_specs:
         if stream_spec == 'dv':
             for sinfo in info['streams']:
@@ -406,7 +432,7 @@ def filter_movie(filename, stream_specs=('dv', 'da'), duration=None):
             else:
                 raise LookupError('no stream')
             size = int(sinfo['width']), int(sinfo['height'])
-            s_duration = duration or float(sinfo['duration'])
+            s_duration = float(sinfo['duration']) if duration is None else duration
             outputs.append(VideoStream(size=size, duration=s_duration))
         elif stream_spec == 'da':
             outputs.append(AudioStream())
@@ -415,7 +441,7 @@ def filter_movie(filename, stream_specs=('dv', 'da'), duration=None):
                 'stream specification {!r} not implemented'.format(stream_spec))
     return Filter(
         name='movie',
-        args={'filename': filename, 'streams': '+'.join(stream_specs)},
+        args=args,
         inputs=(),
         outputs=tuple(outputs),
     )
@@ -512,4 +538,15 @@ def generate_silence(duration):
         args={'exprs': 0, 'duration': duration},
         inputs=(),
         outputs=[AudioStream()],
+    )
+
+
+@functools.lru_cache()
+def generate_blank(duration, width, height):
+    return Filter(
+        name='color',
+        args={'color': '00000000', 'size': '{}x{}'.format(width,height),
+              'duration': duration},
+        inputs=(),
+        outputs=[VideoStream(size=(width, height), duration=duration)],
     )
