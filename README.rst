@@ -3,14 +3,12 @@ Takes a video recording of a presentation, and video grabbed from the screen
 them up, composes them with captions and titles and such,
 and throws the video to Youtube for all to see.
 
-Or, it will do that. Someday. So far I'm just messing with asyncio and
-time warping algorithms – turns out different videos can be recorded
-at different speeds.
+Or, it will do that. Someday. So far it just creates the resulting video.
 
 Installation
 ------------
 
-You'll want Python 3, ffmpeg, and a version of librosa with this fix:
+You'll want Python 3, ffmpeg, Inkscape, and a version of librosa with this fix:
 https://github.com/bmcfee/librosa/pull/127
 
 Make sure you have requirements for various scientific-y libraries – some of
@@ -22,27 +20,34 @@ those are:
 
 After that, you just::
 
-    pip install -r requirements.txt
+    python setup.py install
 
 Usage
 -----
 
-Use::
+Make a template SVG file with rectangles where the videos should be, and
+assign nice IDs to those rectangles (Inkscape: right-click, Object Properties).
 
-    python -m talk_video_maker /path/to/the/sources
+Then you have to write a little script that puts the videos together.
+An example is at pyvo/make_video.py.
+(If you need something that's not in the example, then it's probably not
+implemented yet; sorry.)
 
-The directory should contain:
+After that, just run the script, and it'll do the magic!
 
-* One or more .mts files with the video from the camera
-* One .ogv file with the screen grab
-* One .yaml file with information for titles
+If you need to look at any intermediate output (video, image, etc.), do::
 
-The program creates a bunch of cache files named with a leading underscore.
-These allow the script to pick up where it left off if interrupted.
+    exit(some_object.filename)
 
+and then run the script. It'll generate the file, and give you the filename.
+
+All generated files are stored in a ``__filecache__`` directory under a hash,
+so that they are not built again if needed in a subsequent run.
+If you change the talk_video_maker internals, you might need to delete the
+cache directory.
 
 Pyvec-videomaker
 ----------------
 
-If you need a working script, try Martin Bílek's pyvec-videomaker:
+If you need a simpler script, try Martin Bílek's pyvec-videomaker:
 https://bitbucket.org/fragariacz/pyvec-videomaker
