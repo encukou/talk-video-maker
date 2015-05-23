@@ -10,7 +10,7 @@ from .cdtw import dtw
 
 SAMPLE_RATE = 22050
 DTW_HOP_RATIO = 3/4
-DTW_CUTOFF = 500
+DTW_CUTOFF = 1/8
 STFT_HOP_LENGTH = 512
 DTW_WINDOW_LENGTH = 120  # seconds
 
@@ -93,8 +93,10 @@ def get_wdwt_path(data1, data2):
 
 
 def regress(paths):
+    length = paths.shape[1]
+    cutoff = int(length * DTW_CUTOFF)
     slope, intercept, r, p, stderr = scipy.stats.linregress(
-        paths[:,DTW_CUTOFF:-DTW_CUTOFF])
+        paths[:,cutoff:-cutoff])
     frames = intercept * 1  # TODO
     def print_(*a, **ka):
         print(*a, **ka)
