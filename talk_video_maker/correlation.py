@@ -4,7 +4,7 @@ import librosa
 import numpy
 import scipy
 
-from . import objects, templates
+from . import objects, templates, videos
 from .objects import hash_bytes, run
 from .cdtw import dtw
 
@@ -20,8 +20,18 @@ thread_executor = ThreadPoolExecutor(1)  # XXX: higher value
 
 
 def correlated(video_a, video_b):
-    stats = CorrelatedObject(video_a, video_b).stats
-    print(stats)
+    corr = CorrelatedObject(video_a, video_b)
+
+    slope, intercept, r, stderr = corr.stats
+    frames = intercept * 1
+    frames_s = intercept * STFT_HOP_LENGTH / SAMPLE_RATE
+    print('A is {}× faster than B'.format(slope))
+    print('A is shifted by {} frames = {} s relative to B'.format(
+        frames, frames_s))
+    print('Correlation coefficient: {}'.format(r))
+    print('Standard error of estimate: {}'.format(stderr))
+
+    return corr.result_a, corr.result_b
 
 class CorrelatedObject(objects.Object):
     ext = '.npy'
@@ -50,8 +60,26 @@ class CorrelatedObject(objects.Object):
         except AttributeError:
             with open(self.filename, 'rb') as f:
                 paths = numpy.load(f)
-        slope, intercept, r, stderr = regress(paths)
-        return slope, intercept, r, stderr
+        return regress(paths)
+
+    @property
+    def result_a(self):
+        return self._pad_video(self.video_a, 1)
+
+    @property
+    def result_b(self):
+        return self._pad_video(self.video_b, -1)
+
+    def _pad_video(self, video, side):
+        slope, intercept, r, stderr = self.stats
+        if intercept * side <= 0:
+            return video
+        else:
+            delay = side * intercept * STFT_HOP_LENGTH / SAMPLE_RATE
+            blank = videos.BlankVideo(delay,
+                                      width=video.width,
+                                      height=video.height)
+            return blank + video
 
 
 def get_data(video_a, video_b):
@@ -97,11 +125,4 @@ def regress(paths):
     cutoff = int(length * DTW_CUTOFF)
     slope, intercept, r, p, stderr = scipy.stats.linregress(
         paths[:,cutoff:-cutoff])
-    frames = intercept * 1  # TODO
-    def print_(*a, **ka):
-        print(*a, **ka)
-    print_('Screngrab is {}× faster'.format(slope))
-    #print_('Screngrab is shifted by {} frames'.format(frames))
-    print_('Correlation coefficient: {}'.format(r))
-    print_('Standard error of estimate: {}'.format(stderr))
     return slope, intercept, r, stderr

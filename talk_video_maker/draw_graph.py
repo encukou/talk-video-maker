@@ -18,8 +18,8 @@ def get_filters(filters):
 
     while unprocessed:
         filter = unprocessed.pop(0)
+        graph.setdefault(filter, set())
         for stream in reversed(filter.inputs):
-            graph.setdefault(filter, set())
             graph.setdefault(stream.source, set())
             graph[stream.source].add(filter)
             if stream.source not in processed:

@@ -34,11 +34,12 @@ class AVObject(objects.Object):
     def resized_by_template(self, template, id):
         sizes = templates.TemplateElementSizes(template)
         streams = self.streams
-        streams = filter_streams(
-            streams, {'video'}, 'scale', dict(
-                w=sizes.get(id, 'w'),
-                h=sizes.get(id, 'h'),
-        ))
+        w, h = sizes.get(id, 'w'), sizes.get(id, 'h')
+        streams = filter_streams(streams, {'video'}, 'scale', dict(w=w, h=h))
+        streams = tuple(streams)
+        for stream in streams:
+            if stream.type == 'video':
+                stream.size = w, h
         streams = filter_streams(streams, {'video'}, 'setsar', dict(sar='1'))
         streams = filter_streams(streams, {'video'}, 'pad', dict(
             x=sizes.get(id, 'x'),
@@ -46,6 +47,10 @@ class AVObject(objects.Object):
             w=template.width,
             h=template.height,
         ))
+        streams = tuple(streams)
+        for stream in streams:
+            if stream.type == 'video':
+                stream.size = template.width, template.height
         return AVObject(streams)
 
     def with_fps(self, fps):
@@ -79,9 +84,9 @@ class AVObject(objects.Object):
         return AVObject(streams, acodec='pcm_s16le', format='wav')
 
     def save_to(self, filename):
-        print('\n'.join(draw_graph(self.streams)))
+        print(self.graph)
         print(filename)
-        specs = ' ; '.join(generate_filter_specifications(self.streams))
+        specs = ' ; '.join(self.filter_spec)
         print(specs)
         run(['ffmpeg',
              '-filter_complex', specs,
@@ -94,10 +99,40 @@ class AVObject(objects.Object):
              filename])
         return
 
+    @property
+    def width(self):
+        for s in self.streams:
+            if s.type == 'video':
+                return s.width
+        raise AttributeError('width')
 
-class InputVideo(AVObject):
+    @property
+    def height(self):
+        for s in self.streams:
+            if s.type == 'video':
+                return s.height
+        raise AttributeError('height')
+
+    @property
+    def graph(self):
+        return '\n'.join(draw_graph(self.streams))
+
+    @property
+    def filter_spec(self):
+        return tuple(generate_filter_specifications(self.streams))
+
+
+class InputVideo(AVObject, objects.InputObject):
+    is_big_file = True
     def __init__(self, filename):
+        self.filename = filename
         streams = filter_movie(filename).outputs
+        super().__init__(streams)
+
+
+class BlankVideo(AVObject):
+    def __init__(self, duration, *, width, height):
+        streams = filter_color(duration, width, height).outputs
         super().__init__(streams)
 
 
@@ -137,6 +172,8 @@ class ImageVideo(AVObject):
 
 
 class Stream:
+    attr_names = frozenset()
+
     def __repr__(self):
         try:
             source = self.source
@@ -158,9 +195,27 @@ class Stream:
         return hash_bytes(self.incomplete_hash.encode('utf-8'),
                           self.source.hash.encode('utf-8'))
 
+    @property
+    def width(self):
+        return self.size[0]
+
+    @property
+    def height(self):
+        return self.size[1]
+
+    def copy(self):
+        return type(self)()
+
 
 class VideoStream(Stream):
     type = 'video'
+
+    def __init__(self, size):
+        super().__init__()
+        self.size = size
+
+    def copy(self):
+        return type(self)(size=self.size)
 
 
 class AudioStream(Stream):
@@ -293,7 +348,7 @@ class Filter(collections.namedtuple('Filter', 'name arg_tuples inputs outputs ha
 def filter_streams(streams, types, name, args):
     for stream in streams:
         if stream.type in types:
-            filter = Filter(name, args, [stream], [type(stream)()])
+            filter = Filter(name, args, [stream], [stream.copy()])
             [stream] = filter.outputs
             yield stream
         else:
@@ -302,9 +357,22 @@ def filter_streams(streams, types, name, args):
 
 def filter_movie(filename, stream_specs=('dv', 'da')):
     outputs = []
+    info = json.loads(run([
+        'ffprobe',
+        '-print_format', 'json',
+        '-show_streams',
+        filename
+    ]).decode('utf-8'))
+    print(info)
     for stream_spec in stream_specs:
         if stream_spec == 'dv':
-            outputs.append(VideoStream())
+            for sinfo in info['streams']:
+                if sinfo['codec_type'] == 'video':
+                    break
+            else:
+                raise LookupError('no stream')
+            size = int(sinfo['width']), int(sinfo['height'])
+            outputs.append(VideoStream(size=size))
         elif stream_spec == 'da':
             outputs.append(AudioStream())
         else:
@@ -315,6 +383,18 @@ def filter_movie(filename, stream_specs=('dv', 'da')):
         args={'filename': filename, 'streams': '+'.join(stream_specs)},
         inputs=(),
         outputs=tuple(outputs),
+    )
+
+
+def filter_color(duration, width, height):
+    return Filter(
+        name='color',
+        args={'color': '00000000',
+              'size': '{}x{}'.format(width, height),
+              'duration': duration,
+        },
+        inputs=(),
+        outputs=tuple([VideoStream(size=(width, height))]),
     )
 
 
@@ -332,7 +412,7 @@ def filter_concat(groups):
             raise ValueError('Incompatible stream types: {}'.format(
                 [s.type for s in group]))
         if tp == 'video':
-            outputs.append(VideoStream())
+            outputs.append(VideoStream(group[0].size))
             if in_audio:
                 raise ValueError('Video streams must come before audio streams')
             num_video += 1
@@ -353,6 +433,7 @@ def filter_concat(groups):
 def filter_amix(audios):
     if not all(s.type == 'audio' for s in audios):
         raise ValueError('Attempting to amix non-audio streams')
+    assert audios
     return Filter(
         name='amix',
         args={'inputs': len(audios)},

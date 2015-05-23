@@ -91,7 +91,7 @@ def parse_options(signature, argv):
     parser = argparse.ArgumentParser(description='Create a video.',
                                      prog=argv[0])
 
-    parser.add_argument('--config', nargs='?', default=None,
+    parser.add_argument('--config', '-c', nargs='?', default=None,
                         help='Configuration file ' +
                              ' (YAML, provides defaults for other arguments)' +
                              ' [default: config.yaml (if exists)]')
