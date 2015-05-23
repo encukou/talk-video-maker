@@ -1,32 +1,41 @@
-def topo_sort(graph):
-    graph = dict(graph)
-    while graph:
-        # Find all items without a parent
-        leftmost = [l for l, s in graph.items() if not s]
-        if not leftmost:
-            raise ValueError('Dependency cycle detected! %s' % graph)
-        for result in leftmost:
-            yield result
-            graph.pop(result)
-            for bset in graph.values():
-                bset.discard(result)
 
 def get_filters(filters):
     unprocessed = list(filters)
     processed = set()
-    graph = dict()
+    result = set()
 
     while unprocessed:
         filter = unprocessed.pop(0)
-        graph.setdefault(filter, set())
+        result.add(filter)
         for stream in reversed(filter.inputs):
-            graph.setdefault(stream.source, set())
-            graph[stream.source].add(filter)
+            result.add(stream.source)
             if stream.source not in processed:
                 unprocessed.append(stream.source)
                 processed.add(stream.source)
 
-    return list(topo_sort(graph))
+    return result
+
+
+def choose_filter(current_streams, want_filters):
+    while current_streams and current_streams[-1] is None:
+        current_streams.pop()
+    # Find the right-most filter where we can connect all the outputs
+    for stream in reversed(current_streams):
+        if stream:
+            source = stream.source
+            if source not in want_filters:
+                continue
+            if not all(o in current_streams or not any(o in f.inputs
+                                                       for f in want_filters)
+                       for o in source.outputs):
+                continue
+            if any(o in f.inputs
+                   for o in source.outputs
+                   for f in want_filters
+                   if f is not source):
+                continue
+            return source
+
 
 def draw_graph(streams):
     current_streams = list(streams)
@@ -40,20 +49,21 @@ def draw_graph(streams):
         if stream is None:
             return
         parts = []
+        multiout = (current_streams.count(stream) > 1)
         for i, orig in enumerate(list(current_streams)):
             if orig is stream:
                 if i == new_pos:
-                    parts.append('├┼┤')
+                    parts.append('┢╈┪' if multiout else '├┼┤')
                 else:
-                    parts.append('└┴┘')
+                    parts.append('┕┷┙' if multiout else '└┴┘')
                     current_streams[i] = None
             elif i == new_pos:
-                parts.append('┌┬┐')
+                parts.append('┏┳┓' if multiout else '┌┬┐')
                 current_streams[i] = stream
             elif orig is None:
-                parts.append(' ─')
+                parts.append(' ━' if multiout else ' ─')
             else:
-                parts.append('│┼')
+                parts.append('│┿' if multiout else '│┼')
         first_fork = last_fork = None
         for i, part in enumerate(parts):
             if len(part) > 2:  # fork
@@ -85,7 +95,9 @@ def draw_graph(streams):
                 for s in current_streams)
 
     while want_filters:
-        filter = want_filters.pop(0)
+        filter = choose_filter(current_streams, want_filters)
+        want_filters.remove(filter)
+
         wanted = [None if s in filter.outputs else s for s in current_streams]
         while wanted and wanted[-1] is None:
             wanted.pop()

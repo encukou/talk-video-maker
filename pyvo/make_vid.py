@@ -23,7 +23,7 @@ def make_pyvo(
     export_template = template
     export_template = export_template.without('vid-screen')
     export_template = export_template.without('vid-speaker')
-    export_template = export_template.without('qr-code')
+    export_template = export_template.without('qrcode')
 
     template = template.with_text('txt-speaker', speaker + ':')
     template = template.with_text('txt-title', title)
@@ -54,6 +54,7 @@ def make_pyvo(
 
     result = page | screen_vid | speaker_vid
 
+    exit(result.graph)
     exit(result.filename)
 
     return result
