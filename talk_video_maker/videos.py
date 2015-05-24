@@ -102,12 +102,21 @@ class AVObject(objects.Object):
         return AVObject(streams)
 
     def save_to(self, filename):
-        print(self.graph)
         print(filename)
-        specs = ' ; '.join(self.filter_spec)
+
+        streams = self.streams
+        streams = filter_streams(streams, {'video'}, 'setpts',
+                                 {'expr': 'N/FRAME_RATE/TB'})
+        streams = filter_streams(streams, {'audio'}, 'asetpts',
+                                 {'expr': 'N/SR/TB'})
+        streams = tuple(streams)
+
+        print('\n'.join(draw_graph(streams)))
+
+        specs = ' ; '.join(generate_filter_graph(streams))
         print(specs)
         maps = []
-        for i, s in enumerate(self.streams):
+        for i, s in enumerate(streams):
             maps.extend(['-map', '[out{}]'.format(i)])
         run(['ffmpeg',
              '-filter_complex', specs,
@@ -148,16 +157,18 @@ class AVObject(objects.Object):
     def graph(self):
         return '\n'.join(draw_graph(self.streams))
 
-    @property
-    def filter_spec(self):
-        return tuple(generate_filter_specifications(self.streams))
-
 
 class InputVideo(AVObject, objects.InputObject):
     is_big_file = True
     def __init__(self, filename):
         self.filename = filename
         streams = filter_movie(filename).outputs
+        streams = filter_streams(streams, {'video'}, 'fps',
+                                 {'fps': '30'})
+        streams = filter_streams(streams, {'video'}, 'setpts',
+                                 {'expr': 'PTS-STARTPTS'})
+        streams = filter_streams(streams, {'audio'}, 'asetpts',
+                                 {'expr': 'PTS-STARTPTS'})
         super().__init__(streams)
 
 
@@ -293,7 +304,7 @@ def gen_names(prefix='', alphabet='abcdefghijklmnopqrstuvwxyz'):
         n += 1
 
 
-def generate_filter_specifications(streams):
+def generate_filter_graph(streams):
     names_iter = gen_names()
     get_name = lambda: next(names_iter)
 
