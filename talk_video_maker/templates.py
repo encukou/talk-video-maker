@@ -222,13 +222,23 @@ class TemplateElementSizes(objects.Object):
             return self._data
 
     def __getitem__(self, id):
-        return {k: self.get(id, k) for k in self.data[id]}
+        return {k: self.get(id, k) for k in 'xywh'}
 
     def get(self, id, size):
-        value = float(self.data[id][size])
-        if size in 'wh':
-            value = math.ceil(value)
-        return int(value)
+        if id is None:
+            if size in 'xy':
+                return 0
+            elif size == 'w':
+                return self.template.width
+            elif size == 'h':
+                return self.template.height
+            else:
+                raise LookupError(size)
+        else:
+            value = float(self.data[id][size])
+            if size in 'wh':
+                value = math.ceil(value)
+            return int(value)
 
 
 class GeneratedImage(objects.Object):

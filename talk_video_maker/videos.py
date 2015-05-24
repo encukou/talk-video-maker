@@ -34,8 +34,10 @@ class AVObject(objects.Object):
     def __or__(self, other):
         return OverlaidAV(self, other)
 
-    def resized_by_template(self, template, id):
+    def resized_by_template(self, template, id, ref_id=None):
         sizes = template.element_sizes[id]
+        ref_sizes = template.element_sizes[ref_id]
+        print(sizes, ref_sizes)
         w = sizes['w']
         h = sizes['h']
         streams = self.streams
@@ -45,10 +47,10 @@ class AVObject(objects.Object):
             if stream.type == 'video':
                 stream.size = w, h
         return AVObject(streams).padded(
-            sizes['x'],
-            sizes['y'],
-            template.width,
-            template.height
+            sizes['x'] - ref_sizes['x'],
+            sizes['y'] - ref_sizes['y'],
+            ref_sizes['w'],
+            ref_sizes['h']
         )
 
     def padded(self, x, y, w, h):

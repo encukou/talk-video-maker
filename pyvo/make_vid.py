@@ -38,18 +38,14 @@ def make_pyvo(
     speaker_vid = speaker_vid.with_fps(FPS)
 
     sponsors = export_template.exported_slide('slide-sponsors', duration=6)
-    sponsors = sponsors.resized_by_template(template, 'vid-screen')
 
     last = export_template.exported_slide('slide-last', duration=6)
-    last = last.resized_by_template(template, 'vid-screen')
 
     qr_sizes = template.element_sizes['qrcode']
     last_sizes = template.element_sizes['slide-last']
     qrcode = qr.TextQR(url).resized(qr_sizes['w'], qr_sizes['h'])
     qrcode = qrcode.exported_slide(duration=last.duration)
-    qrcode = qrcode.padded(qr_sizes['x'] - last_sizes['x'],
-                           qr_sizes['y'] - last_sizes['y'],
-                           last.width, last.height)
+    qrcode = qrcode.resized_by_template(template, 'qrcode', 'slide-last')
 
     last = last | qrcode
 
