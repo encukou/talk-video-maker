@@ -103,6 +103,19 @@ class AVObject(objects.Object):
         streams = [s for s in self.streams if s.type != 'audio']
         return AVObject(streams)
 
+    def fade(self, duration, fade_type, start_time=0):
+        streams = self.streams
+        args = dict(type=fade_type, duration=duration, color='00000000',
+                    start_time=start_time, alpha=1)
+        streams = filter_streams(streams, {'video'}, 'fade', args)
+        return AVObject(streams)
+
+    def fade_in(self, duration):
+        return self.fade(duration, 'in')
+
+    def fade_out(self, duration):
+        return self.fade(duration, 'out', self.duration - duration)
+
     def save_to(self, filename):
         print(filename)
 
@@ -167,6 +180,8 @@ class InputVideo(AVObject, objects.InputObject):
         streams = filter_movie(filename).outputs
         streams = filter_streams(streams, {'video'}, 'fps',
                                  {'fps': '30'})
+        streams = filter_streams(streams, {'video'}, 'format',
+                                 {'pix_fmts': 'rgba|yuva420p|yuva422p|yuva444p'})
         streams = filter_streams(streams, {'video'}, 'setpts',
                                  {'expr': 'PTS-STARTPTS'})
         streams = filter_streams(streams, {'audio'}, 'asetpts',

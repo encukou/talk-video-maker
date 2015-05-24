@@ -20,6 +20,17 @@
   <defs
      id="defs4">
     <linearGradient
+       id="linearGradient6088">
+      <stop
+         id="stop6090"
+         offset="0"
+         style="stop-color:#052532;stop-opacity:1" />
+      <stop
+         id="stop6092"
+         offset="1"
+         style="stop-color:#06435d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient
        inkscape:collect="always"
        id="qr_background">
       <stop
@@ -91,27 +102,7 @@
        x2="475.71429"
        y2="398.42856"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0,-2.4421875e-5)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#Main_Background"
-       id="linearGradient4334"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-4582.0519,1173.5739)"
-       x1="475.71429"
-       y1="-683"
-       x2="475.71429"
-       y2="398.42856" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#Main_Background"
-       id="linearGradient4362"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-4776.0519,1173.5739)"
-       x1="475.71429"
-       y1="-683"
-       x2="475.71429"
-       y2="398.42856" />
+       gradientTransform="translate(-7.5349828e-6,-2.5386728e-5)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#qr_background"
@@ -132,17 +123,37 @@
        y1="-683"
        x2="475.71429"
        y2="398.42856" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#Main_Background"
+       id="linearGradient6106"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-2034.6706,1173.5739)"
+       x1="475.71429"
+       y1="-683"
+       x2="475.71429"
+       y2="398.42856" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#Main_Background"
+       id="linearGradient6110"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-3.4602051,1173.5739)"
+       x1="475.71429"
+       y1="-683"
+       x2="475.71429"
+       y2="398.42856" />
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.24748737"
-     inkscape:cx="2719.2661"
-     inkscape:cy="21.777616"
+     inkscape:cx="3106.8886"
+     inkscape:cy="120.40979"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -172,11 +183,27 @@
      id="layer1"
      transform="translate(0,683.00001)">
     <rect
-       style="opacity:1;fill:url(#linearGradient9737);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect8425"
+       inkscape:label="#rect5978"
+       style="opacity:1;fill:url(#linearGradient6110);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="slide-last"
        width="1920"
        height="1080"
-       x="0"
+       x="2036.5398"
+       y="490.57391" />
+    <rect
+       inkscape:label="#rect5978"
+       style="opacity:1;fill:url(#linearGradient6106);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="slide-sponsors"
+       width="1920"
+       height="1080"
+       x="5.3294091"
+       y="490.57391" />
+    <rect
+       style="opacity:1;fill:url(#linearGradient9737);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect8425"
+       width="494.28571"
+       height="817.14288"
+       x="1425.7142"
        y="-683" />
     <rect
        style="opacity:1;fill:#ff0000;fill-opacity:0.68811879;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -262,12 +289,12 @@
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
-         y="-373"
-         x="75.851723"
-         id="image9399"
-         preserveAspectRatio="none"
+         width="328.57144"
          height="328.57144"
-         width="328.57144" />
+         preserveAspectRatio="none"
+         id="image9399"
+         x="75.851723"
+         y="-373" />
       <g
          transform="matrix(0.72218938,-0.27571945,0.27571945,0.72218938,707.74034,-276.12693)"
          id="g9711">
@@ -283,14 +310,6 @@
            id="path234" />
       </g>
     </g>
-    <rect
-       y="490.57391"
-       x="5.3294091"
-       height="1080"
-       width="1920"
-       id="slide-sponsors"
-       style="opacity:1;fill:url(#linearGradient4334);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:label="#rect4332" />
     <flowRoot
        inkscape:label="#flowRoot3366"
        xml:space="preserve"
@@ -318,14 +337,6 @@
        width="22.857143"
        id="rect4346"
        style="opacity:0.42000002;fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <rect
-       style="opacity:1;fill:url(#linearGradient4362);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="slide-last"
-       width="1920"
-       height="1080"
-       x="2036.5398"
-       y="490.57391"
-       inkscape:label="#rect4348" />
     <flowRoot
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:66.66666412px;line-height:125%;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#d9f4ff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="flowRoot4350"
@@ -453,19 +464,19 @@
     <image
        sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/fragaria-logo.png"
        xlink:href="fragaria-logo.png"
-       width="508"
-       height="132"
-       preserveAspectRatio="none"
-       style="fill:#ffffff;fill-opacity:1;image-rendering:optimizeQuality"
-       id="image5975"
+       y="1133.1453"
        x="711.32941"
-       y="1133.1453" />
+       id="image5975"
+       style="fill:#ffffff;fill-opacity:1;image-rendering:optimizeQuality"
+       preserveAspectRatio="none"
+       height="132"
+       width="508" />
     <rect
        y="-683"
        x="2040"
        height="1080"
        width="1920"
-       id="blank"
+       id="slide-blank"
        style="opacity:1;fill:url(#linearGradient5980);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        inkscape:label="#rect5978" />
   </g>

@@ -22,6 +22,9 @@ class Template(objects.Object):
     def resized(self, width, height):
         return ResizedTemplate(self, width, height)
 
+    def with_attr(self, id, attr, value):
+        return AttrReplacedTemplate(self, id, attr, value)
+
     def _dom_copy(self):
         return lxml.etree.XML(lxml.etree.tostring(self.dom))
 
@@ -164,6 +167,29 @@ class ImageReplacedTemplate(ModifiedTemplate):
                 'y': str(y),
                 'preserveAspectRatio': 'none',
             })
+        return dom
+
+    def __repr__(self):
+        return '{s.parent}{{-{s.id}}}'.format(s=self)
+
+
+class AttrReplacedTemplate(ModifiedTemplate):
+    def __init__(self, parent, id, attr, value):
+        self.parent = parent
+        self.id = id
+        self.attr = attr
+        self.value = str(value)
+        self.hash = hash_bytes(type(self).__name__.encode('utf-8'),
+                               self.parent.hash.encode('utf-8'),
+                               id.encode('utf-8'),
+                               attr.encode('utf-8'),
+                               self.value.encode('utf-8'))
+
+    def _dom_copy(self):
+        dom = self.parent._dom_copy()
+        xpath = './/*[@id="{}"]'.format(self.id)
+        for elem in dom.xpath(xpath):
+            elem.attrib[self.attr] = self.value
         return dom
 
     def __repr__(self):

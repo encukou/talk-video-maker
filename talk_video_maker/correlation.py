@@ -79,7 +79,7 @@ class CorrelatedObject(objects.Object):
             blank = videos.BlankVideo(delay,
                                       width=video.width,
                                       height=video.height)
-            return blank + video
+            return blank + video.fade_in(0.5)
 
 
 def get_data(video_a, video_b):
