@@ -1,6 +1,6 @@
 import pprint
 
-from talk_video_maker import mainfunc, opts, correlated
+from talk_video_maker import mainfunc, opts, correlated, qr
 
 FPS = 25
 
@@ -20,16 +20,16 @@ def make_pyvo(
         event: opts.TextOption(help='Name of the event'),
         date: opts.DateOption(help='Date of the event'),
         ):
-    export_template = template
-    export_template = export_template.without('vid-screen')
-    export_template = export_template.without('vid-speaker')
-    export_template = export_template.without('qrcode')
-
     template = template.with_text('txt-speaker', speaker + ':')
     template = template.with_text('txt-title', title)
     template = template.with_text('txt-event', event)
     template = template.with_text('txt-date', date.strftime('%Y-%m-%d'))
     template = template.with_text('txt-url', url)
+
+    export_template = template
+    export_template = export_template.without('vid-screen')
+    export_template = export_template.without('vid-speaker')
+    export_template = export_template.without('qrcode')
 
     screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
     screen_vid = screen_vid.with_fps(FPS)
@@ -43,6 +43,16 @@ def make_pyvo(
     last = export_template.exported_slide('slide-last', duration=6)
     last = last.resized_by_template(template, 'vid-screen')
 
+    qr_sizes = template.element_sizes['qrcode']
+    last_sizes = template.element_sizes['slide-last']
+    qrcode = qr.TextQR(url).resized(qr_sizes['w'], qr_sizes['h'])
+    qrcode = qrcode.exported_slide(duration=last.duration)
+    qrcode = qrcode.padded(qr_sizes['x'] - last_sizes['x'],
+                           qr_sizes['y'] - last_sizes['y'],
+                           last.width, last.height)
+
+    last = last | qrcode
+
     screen_vid = screen_vid + sponsors + last
 
     screen_vid, speaker_vid = correlated(screen_vid, speaker_vid)
@@ -54,7 +64,7 @@ def make_pyvo(
 
     result = page | screen_vid | speaker_vid
 
-    exit(result.graph)
+    print(result.graph)
     exit(result.filename)
 
     return result

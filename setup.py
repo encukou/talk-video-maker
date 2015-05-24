@@ -30,6 +30,7 @@ setup(
         'scipy',
         'librosa',
         'lxml',
+        'qrcode',
         # /usr/bin/inkscape
         # /usr/bin/ffmpeg
     ],

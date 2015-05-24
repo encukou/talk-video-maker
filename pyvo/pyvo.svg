@@ -20,6 +20,18 @@
   <defs
      id="defs4">
     <linearGradient
+       inkscape:collect="always"
+       id="qr_background">
+      <stop
+         style="stop-color:#d9f4ff;stop-opacity:1;"
+         offset="0"
+         id="stop5499" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="1"
+         id="stop5501" />
+    </linearGradient>
+    <linearGradient
        id="Main_Background">
       <stop
          style="stop-color:#052532;stop-opacity:1"
@@ -100,6 +112,15 @@
        y1="-683"
        x2="475.71429"
        y2="398.42856" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#qr_background"
+       id="linearGradient5503"
+       x1="4314.0771"
+       y1="298.52283"
+       x2="4314.0771"
+       y2="-414.6449"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -108,9 +129,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.49497475"
-     inkscape:cx="2249.3868"
-     inkscape:cy="890.26205"
+     inkscape:zoom="0.7"
+     inkscape:cx="4750.4765"
+     inkscape:cy="523.19638"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -321,14 +342,10 @@
        height="48.571438"
        x="4363.3037"
        y="407.31653" />
-    <rect
-       style="opacity:0.42000002;fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="qrcode"
-       width="593.96967"
-       height="593.96967"
-       x="4077.7471"
-       y="-303.26422"
-       inkscape:label="#rect4364" />
+    <path
+       style="opacity:1;fill:url(#linearGradient5503);fill-opacity:1;stroke:#000000;stroke-width:1.18663573;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 4124.457,-260.55469 a 30.002994,30.002994 0 0 0 -30,30 l 0,500.55078 a 30.002994,30.002994 0 0 0 30,30 l 500.5489,0 a 30.002994,30.002994 0 0 0 30,-30 l 0,-500.55078 a 30.002994,30.002994 0 0 0 -30,-30 l -500.5489,0 z"
+       id="path5494" />
     <flowRoot
        transform="translate(21.404545,370.47722)"
        inkscape:label="#flowRoot3366"
@@ -342,5 +359,13 @@
            height="144.86606"
            x="3652.3918"
            y="-804.87775" /></flowRegion><flowPara
-         id="flowPara4372">http://pyvo.cz/brno/2000-99-99/exampletalk</flowPara></flowRoot>  </g>
+         id="flowPara4372">http://pyvo.cz/brno/2000-99-99/exampletalk</flowPara></flowRoot>    <rect
+       style="opacity:1;fill:#ff0000;fill-opacity:0.37850466;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="qrcode"
+       width="527.29962"
+       height="527.29962"
+       x="4111.0815"
+       y="-243.92911"
+       inkscape:label="#rect5505" />
+  </g>
 </svg>

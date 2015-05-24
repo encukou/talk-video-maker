@@ -21,8 +21,10 @@ def run(argv):
 class Object:
     is_big_file = False
 
-    def get_filename(self):
-        return os.path.join('./__filecache__/', self.hash + self.ext)
+    def get_filename(self, *, ext=None):
+        if ext is None:
+            ext = self.ext
+        return os.path.abspath(os.path.join('./__filecache__/', self.hash + ext))
 
     def save(self):
         filename = self.get_filename()

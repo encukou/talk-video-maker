@@ -35,26 +35,36 @@ class AVObject(objects.Object):
         return OverlaidAV(self, other)
 
     def resized_by_template(self, template, id):
-        sizes = templates.TemplateElementSizes(template)
+        sizes = template.element_sizes[id]
+        w = sizes['w']
+        h = sizes['h']
         streams = self.streams
-        w, h = sizes.get(id, 'w'), sizes.get(id, 'h')
         streams = filter_streams(streams, {'video'}, 'scale', dict(w=w, h=h))
         streams = tuple(streams)
         for stream in streams:
             if stream.type == 'video':
                 stream.size = w, h
+        return AVObject(streams).padded(
+            sizes['x'],
+            sizes['y'],
+            template.width,
+            template.height
+        )
+
+    def padded(self, x, y, w, h):
+        streams = self.streams
+        print(x, y, w, h)
+        assert all(z >= 0 for z in (x, y, w, h))
+        #if x in (1438,808,3358,1888): 1/0
         streams = filter_streams(streams, {'video'}, 'setsar', dict(sar='1'))
         streams = filter_streams(streams, {'video'}, 'pad', dict(
-            x=sizes.get(id, 'x'),
-            y=sizes.get(id, 'y'),
-            w=template.width,
-            h=template.height,
+            x=x, y=y, w=w, h=h,
             color='00000000',
         ))
         streams = tuple(streams)
         for stream in streams:
             if stream.type == 'video':
-                stream.size = template.width, template.height
+                stream.size = w, h
         return AVObject(streams)
 
     def with_fps(self, fps):
@@ -546,7 +556,7 @@ def generate_blank(duration, width, height):
     return Filter(
         name='color',
         args={'color': '00000000', 'size': '{}x{}'.format(width,height),
-              'duration': duration},
+              'duration': duration, 'rate': 50},
         inputs=(),
         outputs=[VideoStream(size=(width, height), duration=duration)],
     )

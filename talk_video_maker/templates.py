@@ -13,8 +13,14 @@ class Template(objects.Object):
     def with_text(self, id, text):
         return RetextedTemplate(self, id, text)
 
+    def with_image(self, id, image):
+        return ImageReplacedTemplate(self, id, image)
+
     def without(self, id):
         return ReducedTemplate(self, id)
+
+    def resized(self, width, height):
+        return ResizedTemplate(self, width, height)
 
     def _dom_copy(self):
         return lxml.etree.XML(lxml.etree.tostring(self.dom))
@@ -34,34 +40,32 @@ class Template(objects.Object):
 
     def exported_slide(self, id=None, *, duration):
         from . import videos
-        if id is None:
-            pic = self.exported_page()
-        else:
-            pic = self.exported_picture(id)
+        pic = self.exported_picture(id)
         return videos.make_image_video(pic, duration)
 
-    def exported_picture(self, id):
-        sizes = TemplateElementSizes(self)
-        def write_image(filename):
-            run(['inkscape',
-                 '--export-png', filename,
-                 '--export-area-snap',
-                 '--export-background', '#ffffff00',
-                 '--export-id', id,
-                 self.filename])
-        pic_hash = hash_bytes(self.hash.encode('utf-8'),
-                              id.encode('utf-8'))
-        return GeneratedImage(pic_hash.encode('utf-8'), write_image)
-
     def exported_page(self):
-        sizes = TemplateElementSizes(self)
+        return self.exported_picture()
+
+    def exported_picture(self, id=None, width=None, height=None):
         def write_image(filename):
-            run(['inkscape',
-                 '--export-png', filename,
-                 '--export-area-page',
-                 '--export-background', '#ffffff00',
-                 self.filename])
-        pic_hash = hash_bytes(self.hash.encode('utf-8'))
+            args = ['inkscape',
+                    self.filename,
+                    '--export-png', filename,
+                    '--export-background-opacity', '0']
+            if id is not None:
+                args.extend(['--export-area-snap',
+                             '--export-id', id])
+            else:
+                args.extend(['--export-area-page'])
+            if width is not None:
+                args.extend(['--export-width', str(width)])
+            if height is not None:
+                args.extend(['--export-height', str(height)])
+            run(args)
+        pic_hash = hash_bytes(self.hash.encode('utf-8'),
+                              id.encode('utf-8') if id else b'',
+                              str(width).encode('utf-8'),
+                              str(height).encode('utf-8'))
         return GeneratedImage(pic_hash.encode('utf-8'), write_image)
 
     @property
@@ -71,6 +75,10 @@ class Template(objects.Object):
     @property
     def height(self):
         return int(self.dom.attrib['height'])
+
+    @property
+    def element_sizes(self):
+        return TemplateElementSizes(self)
 
 
 class InputTemplate(Template, objects.InputObject):
@@ -128,6 +136,57 @@ class ReducedTemplate(ModifiedTemplate):
         return '{s.parent}{{-{s.id}}}'.format(s=self)
 
 
+class ImageReplacedTemplate(ModifiedTemplate):
+    def __init__(self, parent, id, image):
+        self.parent = parent
+        self.id = id
+        self.image = image
+        self.hash = hash_bytes(type(self).__name__.encode('utf-8'),
+                               self.parent.hash.encode('utf-8'),
+                               id.encode('utf-8'),
+                               image.hash.encode('utf-8'))
+
+    def _dom_copy(self):
+        dom = self.parent._dom_copy()
+        xpath = './/*[@id="{}"]'.format(self.id)
+        for elem in dom.xpath(xpath):
+            width = elem.attrib['width']
+            height = elem.attrib['height']
+            x = elem.attrib['x']
+            y = elem.attrib['y']
+            elem.tag = 'image'
+            elem.attrib.clear()
+            elem.attrib.update({
+                '{http://www.w3.org/1999/xlink}href': self.image.filename,
+                'width': str(width),
+                'height': str(height),
+                'x': str(x),
+                'y': str(y),
+                'preserveAspectRatio': 'none',
+            })
+        return dom
+
+    def __repr__(self):
+        return '{s.parent}{{-{s.id}}}'.format(s=self)
+
+
+class ResizedTemplate(ModifiedTemplate):
+    def __init__(self, parent, width, height):
+        self.parent = parent
+        self.new_width = width
+        self.new_height = height
+        self.hash = hash_bytes(type(self).__name__.encode('utf-8'),
+                               self.parent.hash.encode('utf-8'),
+                               str(width).encode('utf-8'),
+                               str(height).encode('utf-8'))
+
+    def _dom_copy(self):
+        dom = self.parent._dom_copy()
+        dom.attrib['width'] = str(self.new_width)
+        dom.attrib['height'] = str(self.new_height)
+        return dom
+
+
 class TemplateElementSizes(objects.Object):
     ext = '.sizes'
 
@@ -161,6 +220,9 @@ class TemplateElementSizes(objects.Object):
                 data[name] = {'x': x, 'y': y, 'w': w, 'h': h}
             self._data = data
             return self._data
+
+    def __getitem__(self, id):
+        return {k: self.get(id, k) for k in self.data[id]}
 
     def get(self, id, size):
         value = float(self.data[id][size])
