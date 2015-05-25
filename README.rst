@@ -8,8 +8,8 @@ Or, it will do that. Someday. So far it just creates the resulting video.
 Installation
 ------------
 
-You'll want Python 3, ffmpeg, Inkscape, and a version of librosa with this fix:
-https://github.com/bmcfee/librosa/pull/127
+You'll want Python 3, ffmpeg, Inkscape, Cython, and a version of librosa
+with this fix: https://github.com/bmcfee/librosa/pull/127
 
 Make sure you have requirements for various scientific-y libraries – some of
 those are:
