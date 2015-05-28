@@ -95,16 +95,6 @@
        id="pyBlue" />
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#Main_Background"
-       id="linearGradient9737"
-       x1="475.71429"
-       y1="-683"
-       x2="475.71429"
-       y2="398.42856"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-7.5349828e-6,-2.5386728e-5)" />
-    <linearGradient
-       inkscape:collect="always"
        xlink:href="#qr_background"
        id="linearGradient5503"
        x1="4314.0771"
@@ -143,6 +133,16 @@
        y1="-683"
        x2="475.71429"
        y2="398.42856" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#Main_Background"
+       id="linearGradient6114"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-2040,-3.6110126e-5)"
+       x1="475.71429"
+       y1="-683"
+       x2="475.71429"
+       y2="398.42856" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -151,9 +151,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.24748737"
-     inkscape:cx="3106.8886"
-     inkscape:cy="120.40979"
+     inkscape:zoom="0.35"
+     inkscape:cx="2057.0839"
+     inkscape:cy="-40.373197"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -199,13 +199,6 @@
        x="5.3294091"
        y="490.57391" />
     <rect
-       style="opacity:1;fill:url(#linearGradient9737);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect8425"
-       width="494.28571"
-       height="817.14288"
-       x="1425.7142"
-       y="-683" />
-    <rect
        style="opacity:1;fill:#ff0000;fill-opacity:0.68811879;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="vid-speaker"
        width="480.86661"
@@ -221,6 +214,14 @@
        x="0"
        y="-683"
        inkscape:label="#rect3338" />
+    <rect
+       inkscape:label="#rect5978"
+       style="opacity:1;fill:url(#linearGradient6114);fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6112"
+       width="480"
+       height="810.08667"
+       x="1440"
+       y="-683" />
     <flowRoot
        xml:space="preserve"
        id="txt-date"

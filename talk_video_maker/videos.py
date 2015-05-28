@@ -456,6 +456,7 @@ def filter_movie(filename, stream_specs=('dv', 'da'), duration=None, loop=None):
         'ffprobe',
         '-print_format', 'json',
         '-show_streams',
+        '-show_format',
         filename
     ]).decode('utf-8'))
     print(info)
@@ -470,7 +471,13 @@ def filter_movie(filename, stream_specs=('dv', 'da'), duration=None, loop=None):
             else:
                 raise LookupError('no stream')
             size = int(sinfo['width']), int(sinfo['height'])
-            s_duration = float(sinfo['duration']) if duration is None else duration
+            if duration is None:
+                try:
+                    s_duration = float(sinfo['duration'])
+                except KeyError:
+                    s_duration = float(info['format']['duration'])
+            else:
+                s_duration = duration
             outputs.append(VideoStream(size=size, duration=s_duration))
         elif stream_spec == 'da':
             outputs.append(AudioStream())
