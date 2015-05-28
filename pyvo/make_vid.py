@@ -1,6 +1,7 @@
 import pprint
 
-from talk_video_maker import mainfunc, opts, correlated, qr
+from talk_video_maker import mainfunc, opts, qr
+from talk_video_maker.syncing import synchronized
 
 FPS = 25
 
@@ -54,7 +55,7 @@ def make_pyvo(
     last = last | qrcode
     last = last.fade_in(0.5)
 
-    screen_vid, speaker_vid = correlated(screen_vid, speaker_vid)
+    screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode='pad')
     screen_vid = screen_vid.muted()
 
     duration = max(screen_vid.duration, speaker_vid.duration)

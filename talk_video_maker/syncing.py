@@ -19,21 +19,21 @@ DTW_WINDOW_SIZE = DTW_WINDOW_LENGTH * SAMPLE_RATE // STFT_HOP_LENGTH
 thread_executor = ThreadPoolExecutor(1)  # XXX: higher value
 
 
-def correlated(video_a, video_b):
-    corr = CorrelatedObject(video_a, video_b)
+def synchronized(video_a, video_b, mode='pad'):
+    sync = SynchronizedObject(video_a, video_b)
 
-    slope, intercept, r, stderr = corr.stats
+    slope, intercept, r, stderr = sync.stats
     frames = intercept * 1
     frames_s = intercept * STFT_HOP_LENGTH / SAMPLE_RATE
     print('A is {}× faster than B'.format(slope))
     print('A is shifted by {} frames = {} s relative to B'.format(
         frames, frames_s))
-    print('Correlation coefficient: {}'.format(r))
+    print('Speedup coefficient: {}'.format(r))
     print('Standard error of estimate: {}'.format(stderr))
 
-    return corr.result_a, corr.result_b
+    return sync.get_results(mode=mode)
 
-class CorrelatedObject(objects.Object):
+class SynchronizedObject(objects.Object):
     ext = '.npy'
 
     def __init__(self, video_a, video_b):
@@ -62,13 +62,13 @@ class CorrelatedObject(objects.Object):
                 paths = numpy.load(f)
         return regress(paths)
 
-    @property
-    def result_a(self):
-        return self._pad_video(self.video_a, 1)
-
-    @property
-    def result_b(self):
-        return self._pad_video(self.video_b, -1)
+    def get_results(self, *, mode='pad'):
+        if mode == 'pad':
+            result_a = self._pad_video(self.video_a, 1)
+            result_b = self._pad_video(self.video_b, -1)
+        else:
+            raise ValueError('bad mode')
+        return result_a, result_b
 
     def _pad_video(self, video, side):
         slope, intercept, r, stderr = self.stats
