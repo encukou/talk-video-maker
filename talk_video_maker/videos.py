@@ -103,18 +103,18 @@ class AVObject(objects.Object):
         streams = [s for s in self.streams if s.type != 'audio']
         return AVObject(streams)
 
-    def fade(self, duration, fade_type, start_time=0):
+    def faded(self, duration, fade_type, start_time=0):
         streams = self.streams
         args = dict(type=fade_type, duration=duration, color='00000000',
                     start_time=start_time, alpha=1)
         streams = filter_streams(streams, {'video'}, 'fade', args)
         return AVObject(streams)
 
-    def fade_in(self, duration):
-        return self.fade(duration, 'in')
+    def faded_in(self, duration):
+        return self.faded(duration, 'in')
 
-    def fade_out(self, duration):
-        return self.fade(duration, 'out', self.duration - duration)
+    def faded_out(self, duration):
+        return self.faded(duration, 'out', self.duration - duration)
 
     def trimmed(self, start=0, end=None):
         streams = self.streams

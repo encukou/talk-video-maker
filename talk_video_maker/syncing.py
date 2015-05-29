@@ -90,7 +90,7 @@ class SynchronizedObject(objects.Object):
             blank = videos.BlankVideo(delay,
                                       width=video.width,
                                       height=video.height)
-            return blank + video.fade_in(0.5)
+            return blank + video.faded_in(0.5)
 
     def _cut_video(self, video, side):
         slope, intercept, r, stderr = self.stats
