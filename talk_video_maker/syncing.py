@@ -66,6 +66,17 @@ class SynchronizedObject(objects.Object):
         if mode == 'pad':
             result_a = self._pad_video(self.video_a, 1)
             result_b = self._pad_video(self.video_b, -1)
+        elif mode == 'a':
+            result_a = self.video_a
+            result_b = self._cut_video(self.video_b, -1)
+            if self.video_a.duration < result_b.duration:
+                result_b = result_b.trimmed(end=self.video_a.duration)
+        elif mode == 'b':
+            #import pdb; pdb.set_trace()
+            result_a = self._cut_video(self.video_a, 1)
+            if self.video_b.duration < result_a.duration:
+                result_a = result_a.trimmed(end=self.video_b.duration)
+            result_b = self.video_b
         else:
             raise ValueError('bad mode')
         return result_a, result_b
@@ -80,6 +91,14 @@ class SynchronizedObject(objects.Object):
                                       width=video.width,
                                       height=video.height)
             return blank + video.fade_in(0.5)
+
+    def _cut_video(self, video, side):
+        slope, intercept, r, stderr = self.stats
+        if intercept * side <= 0:
+            delay = side * intercept * STFT_HOP_LENGTH / SAMPLE_RATE
+            return video.trimmed(start=abs(delay))
+        else:
+            return self._pad_video(video, side)
 
 
 def get_data(video_a, video_b):

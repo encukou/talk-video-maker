@@ -34,11 +34,9 @@ def make_pyvo(
 
     screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
     screen_vid = screen_vid.with_fps(FPS)
-    screen_vid = screen_vid.fade_out(0.5)
 
     speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
     speaker_vid = speaker_vid.with_fps(FPS)
-    speaker_vid = speaker_vid.fade_out(0.5)
 
     sponsors = export_template.exported_slide('slide-sponsors', duration=6)
     sponsors = sponsors.fade_in(0.5)
@@ -55,15 +53,15 @@ def make_pyvo(
     last = last | qrcode
     last = last.fade_in(0.5)
 
-    screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode='pad')
+    screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode='b')
     screen_vid = screen_vid.muted()
 
     duration = max(screen_vid.duration, speaker_vid.duration)
 
     page = export_template.exported_slide(duration=duration)
-    page = page.fade_out(0.5)
 
     main = page | screen_vid | speaker_vid
+    main = main.fade_out(0.5)
     main = main + sponsors + last
 
     blank = export_template.exported_slide('slide-blank', duration=main.duration)

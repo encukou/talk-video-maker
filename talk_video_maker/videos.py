@@ -116,6 +116,27 @@ class AVObject(objects.Object):
     def fade_out(self, duration):
         return self.fade(duration, 'out', self.duration - duration)
 
+    def trimmed(self, start=0, end=None):
+        streams = self.streams
+        duration = self.duration
+        if start > 0:
+            opts = {'start': str(start)}
+            streams = filter_streams(streams, {'video'}, 'trim', opts)
+            streams = filter_streams(streams, {'audio'}, 'atrim', opts)
+            duration -= start
+        if end is not None:
+            opts = {'end': str(end)}
+            streams = filter_streams(streams, {'video'}, 'trim', opts)
+            streams = filter_streams(streams, {'audio'}, 'atrim', opts)
+            duration = end
+        streams = list(fix_pts(streams))
+        assert streams
+        for stream in streams:
+            if stream.type in {'audio', 'video'}:
+                stream.duration = duration
+        assert streams
+        return AVObject(streams)
+
     def save_to(self, filename):
         print(filename)
 
@@ -166,11 +187,20 @@ class AVObject(objects.Object):
                 return getattr(stream, 'duration')
             except AttributeError:
                 pass
+        print('\n'.join(draw_graph(self.streams)))
         raise AttributeError('duration')
 
     @property
     def graph(self):
         return '\n'.join(draw_graph(self.streams))
+
+
+def fix_pts(streams):
+    streams = filter_streams(streams, {'video'}, 'setpts',
+                             {'expr': 'PTS-STARTPTS'})
+    streams = filter_streams(streams, {'audio'}, 'asetpts',
+                             {'expr': 'PTS-STARTPTS'})
+    return streams
 
 
 class InputVideo(AVObject, objects.InputObject):
@@ -182,10 +212,7 @@ class InputVideo(AVObject, objects.InputObject):
                                  {'fps': '30'})
         streams = filter_streams(streams, {'video'}, 'format',
                                  {'pix_fmts': 'rgba|yuva420p|yuva422p|yuva444p'})
-        streams = filter_streams(streams, {'video'}, 'setpts',
-                                 {'expr': 'PTS-STARTPTS'})
-        streams = filter_streams(streams, {'audio'}, 'asetpts',
-                                 {'expr': 'PTS-STARTPTS'})
+        streams = fix_pts(streams)
         super().__init__(streams)
 
 
