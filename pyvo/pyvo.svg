@@ -76,7 +76,7 @@
          style="stop-color:#357cb5;stop-opacity:1" />
     </linearGradient>
     <linearGradient
-       gradientTransform="matrix(0.317715,0,0,0.317715,-2594.1659,-1973.0006)"
+       gradientTransform="matrix(0.317715,0,0,0.317715,-2607.0851,-1939.1612)"
        gradientUnits="userSpaceOnUse"
        y2="3144.1941"
        x2="949.80927"
@@ -85,7 +85,7 @@
        xlink:href="#pyYellowGradient"
        id="pyYellow" />
     <linearGradient
-       gradientTransform="matrix(0.317715,0,0,0.317715,-2492.9803,-1541.2085)"
+       gradientTransform="matrix(0.317715,0,0,0.317715,-2505.8995,-1507.3691)"
        gradientUnits="userSpaceOnUse"
        y2="1660.6002"
        x2="472.67371"
@@ -151,9 +151,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35"
-     inkscape:cx="2057.0839"
-     inkscape:cy="-40.373197"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="1634.3667"
+     inkscape:cy="514.38126"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -239,7 +239,7 @@
        xml:space="preserve"
        id="txt-speaker"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#d9f4ff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="translate(1438.7315,-620.14287)"
+       transform="translate(1438.7315,-628.14287)"
        inkscape:label="#flowRoot3350"><flowRegion
          id="flowRegion3352"><rect
            id="rect3354"
@@ -272,7 +272,7 @@
            id="rect3370"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:33.33333206px;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';fill:#d9f4ff;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara3374">Brněnské Pyvo</flowPara></flowRoot>    <flowRoot
-       transform="translate(1438.7315,-542.31906)"
+       transform="translate(1438.7315,-547.21191)"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:46.66666794px;line-height:125%;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#d9f4ff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="txt-title"
        xml:space="preserve"
@@ -286,7 +286,7 @@
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:46.66666794px;font-family:'Signika Negative';-inkscape-font-specification:'Signika Negative';fill:#d9f4ff;fill-opacity:1" /></flowRegion><flowPara
          id="flowPara3386">On Examples and Placeholders</flowPara></flowRoot>    <g
        id="g4294"
-       transform="translate(1439.1345,54.382141)">
+       transform="translate(1439.1345,26.382141)">
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
