@@ -45,11 +45,11 @@
     <linearGradient
        id="Main_Background">
       <stop
-         style="stop-color:#052532;stop-opacity:1"
+         style="stop-color:#06435d;stop-opacity:1"
          offset="0"
          id="stop9731" />
       <stop
-         style="stop-color:#06435d;stop-opacity:1"
+         style="stop-color:#052532;stop-opacity:1"
          offset="1"
          id="stop9733" />
     </linearGradient>
