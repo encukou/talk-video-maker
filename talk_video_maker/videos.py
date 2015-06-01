@@ -159,8 +159,10 @@ class AVObject(objects.Object):
              '-f', self.format,
              '-c:v', 'libx264',
              '-c:a', self.acodec,
+             '-b:a', '240k',
              '-crf', '30',
-             '-maxrate', '5000k',
+             '-maxrate', '500k',
+             '-bufsize', '1835k',
              '-strict', '-2',
              ] + maps + [
              filename])
