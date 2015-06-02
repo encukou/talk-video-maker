@@ -23,7 +23,7 @@ def fileglob(pattern, default):
             result.append(item)
     if not result:
         raise LookupError('no files matching {}'.format(pattern))
-    return result
+    return sorted(result)
 
 
 class Option:
