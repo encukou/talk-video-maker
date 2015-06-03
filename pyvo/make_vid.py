@@ -38,6 +38,12 @@ def make_pyvo(
     speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
     speaker_vid = speaker_vid.with_fps(FPS)
 
+    # Uncomment to manually sync audio:
+    #speaker_vid = speaker_vid.with_video_offset(0.5)
+
+    # Uncomment to get a 30-second preview:
+    #speaker_vid = speaker_vid.trimmed(end=30)
+
     sponsors = export_template.exported_slide('slide-sponsors', duration=6)
     sponsors = sponsors.faded_in(0.5)
     sponsors = sponsors.faded_out(0.5)

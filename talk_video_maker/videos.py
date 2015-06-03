@@ -137,6 +137,30 @@ class AVObject(objects.Object):
         assert streams
         return AVObject(streams)
 
+    def with_audio_offset(self, t):
+        streams = self.streams
+        if t < 0:
+            streams = filter_streams(streams, {'audio'}, 'atrim', {'start': -t})
+        else:
+            streams = [
+                filter_concat([generate_silence(t).outputs, [s]]).outputs[0]
+                if s.type == 'audio' else s for s in streams]
+        streams = filter_streams(streams, {'audio'}, 'asetpts',
+                                 {'expr': 'N/SR/TB'})
+        return AVObject(streams)
+
+    def with_video_offset(self, t):
+        streams = self.streams
+        if t < 0:
+            streams = filter_streams(streams, {'video'}, 'trim', {'start': -t})
+        else:
+            streams = [
+                filter_concat([generate_blank(t, s.width, s.height, 25).outputs, [s]]).outputs[0]
+                if s.type == 'video' else s for s in streams]
+        streams = filter_streams(streams, {'video'}, 'setpts',
+                                 {'expr': 'N/FRAME_RATE/TB'})
+        return AVObject(streams)
+
     def save_to(self, filename):
         print(filename)
 
@@ -210,11 +234,8 @@ class InputVideo(AVObject, objects.InputObject):
     def __init__(self, filename):
         self.filename = filename
         streams = filter_movie(filename).outputs
-        streams = filter_streams(streams, {'video'}, 'fps',
-                                 {'fps': '30'})
         streams = filter_streams(streams, {'video'}, 'format',
                                  {'pix_fmts': 'rgba|yuva420p|yuva422p|yuva444p'})
-        streams = fix_pts(streams)
         super().__init__(streams)
 
 
@@ -281,14 +302,14 @@ class OverlaidAV(AVObject):
 class ImageVideo(AVObject):
     def __init__(self, image, duration, fps):
         img = filter_movie(image.filename, ['dv'], duration=duration)
-        blank = generate_blank(duration, *img.outputs[0].size)
+        blank = generate_blank(duration, *img.outputs[0].size, fps=fps)
         overlay = filter_overlay(blank.outputs + img.outputs, repeatlast=True)
         streams = overlay.outputs
         super().__init__(streams)
 
 
 def make_image_video(image, duration):
-    return ImageVideo(image, duration, fps=30)
+    return ImageVideo(image, duration, fps=25)
 
 class Stream:
     attr_names = frozenset()
@@ -541,7 +562,10 @@ def filter_concat(groups):
     length = len(groups[0])
     if any(len(g) != length for g in groups):
         raise ValueError('Uneven stream group length')
-    duration = sum(g[0].duration for g in groups)
+    try:
+        duration = sum(g[0].duration for g in groups)
+    except AttributeError:
+        pass
     for group in zip(*groups):
         tp = group[0].type
         if any(s.type != tp for s in group):
@@ -616,11 +640,11 @@ def generate_silence(duration):
 
 
 @functools.lru_cache()
-def generate_blank(duration, width, height):
+def generate_blank(duration, width, height, fps):
     return Filter(
         name='color',
         args={'color': '00000000', 'size': '{}x{}'.format(width,height),
-              'duration': duration, 'rate': 50},
+              'duration': duration, 'rate': fps},
         inputs=(),
         outputs=[VideoStream(size=(width, height), duration=duration)],
     )
