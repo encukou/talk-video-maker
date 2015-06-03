@@ -234,8 +234,11 @@ class InputVideo(AVObject, objects.InputObject):
     def __init__(self, filename):
         self.filename = filename
         streams = filter_movie(filename).outputs
+        streams = filter_streams(streams, {'video'}, 'fps',
+                                 {'fps': '30'})
         streams = filter_streams(streams, {'video'}, 'format',
                                  {'pix_fmts': 'rgba|yuva420p|yuva422p|yuva444p'})
+        streams = fix_pts(streams)
         super().__init__(streams)
 
 
