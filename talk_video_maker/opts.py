@@ -12,16 +12,19 @@ from .videos import InputVideo
 
 NOTHING = object()
 
-def fileglob(pattern, default):
+def fileglob(pattern, default, base):
     result = []
-    for item in glob.glob(pattern):
+    for item in glob.glob(os.path.join(base, pattern)):
         if os.path.isdir(item):
             print(item, default)
-            for subitem in glob.glob(os.path.join(item, default)):
+            for subitem in glob.glob(os.path.join(base, item, default)):
                 result.append(subitem)
         else:
             result.append(item)
     if not result:
+        print('Base:', base)
+        print('Pattern:', pattern)
+        print('Default:', default)
         raise LookupError('no files matching {}'.format(pattern))
     return sorted(result)
 
@@ -47,7 +50,7 @@ class TemplateOption(Option):
         params.setdefault('metavar', 'SVG_FILE')
         super().set_arg_params(params)
 
-    def coerce(self, value):
+    def coerce(self, value, all_opts):
         if isinstance(value, str):
             value = InputTemplate(filename=value)
         return value
@@ -59,9 +62,11 @@ class VideoOption(Option):
         params.setdefault('metavar', 'FILE')
         super().set_arg_params(params)
 
-    def coerce(self, value):
+    def coerce(self, value, all_opts):
+        conf_path = all_opts.get('config') or './config.yaml'
+        base = os.path.dirname(conf_path)
         if isinstance(value, str):
-            filenames = fileglob(value, self.default)
+            filenames = fileglob(value, self.default, base)
             inputs = [InputVideo(filename=n) for n in filenames]
             value = functools.reduce(operator.add, inputs)
         return value
@@ -72,7 +77,7 @@ class TextOption(Option):
         params.setdefault('metavar', 'TEXT')
         super().set_arg_params(params)
 
-    def coerce(self, value):
+    def coerce(self, value, all_opts):
         return str(value)
 
 
@@ -81,7 +86,7 @@ class DateOption(Option):
         params.setdefault('metavar', 'DATE')
         super().set_arg_params(params)
 
-    def coerce(self, value):
+    def coerce(self, value, all_opts):
         if isinstance(value, str):
             value = datetime.date.strptime(value, '%Y-%m-%d')
         return value
@@ -112,7 +117,7 @@ def parse_options(signature, argv):
             config = yaml.safe_load(infile)
     else:
         config = {}
-    args = {}
+    args = {'config': namespace.config}
 
     for param in signature.parameters.values():
         value = getattr(namespace, param.name)
@@ -128,6 +133,6 @@ def parse_options(signature, argv):
 def coerce_options(signature, options_in):
     options_out = {}
     for param in signature.parameters.values():
-        value = param.annotation.coerce(options_in[param.name])
+        value = param.annotation.coerce(options_in[param.name], options_in)
         options_out[param.name] = value
     return options_out
