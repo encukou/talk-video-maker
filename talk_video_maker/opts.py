@@ -81,6 +81,26 @@ class TextOption(Option):
         return str(value)
 
 
+class FlagOption(Option):
+    def set_arg_params(self, params):
+        params.setdefault('action', 'store_true')
+        params.setdefault('default', False)
+        super().set_arg_params(params)
+
+    def coerce(self, value, all_opts):
+        return bool(value)
+
+
+class FloatOption(Option):
+    def set_arg_params(self, params):
+        params.setdefault('metavar', 'NUMBER')
+        params['type'] = float
+        super().set_arg_params(params)
+
+    def coerce(self, value, all_opts):
+        return float(value)
+
+
 class DateOption(Option):
     def set_arg_params(self, params):
         params.setdefault('metavar', 'DATE')

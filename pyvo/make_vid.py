@@ -20,6 +20,15 @@ def make_pyvo(
         url: opts.TextOption(help='URL of the talk'),
         event: opts.TextOption(help='Name of the event'),
         date: opts.DateOption(help='Date of the event'),
+        trim: opts.TextOption(
+            default='b',
+            help='Video trimming mode ' +
+                '(a=whole screencast, b=whole speaker video, pad=both videos)'),
+        preview: opts.FlagOption(
+            help='Only process a small preview of the video'),
+        av_offset: opts.FloatOption(
+            default=0,
+            help='Audio/Video offset correction for the speaker video'),
         ):
     template = template.with_text('txt-speaker', speaker + ':')
     template = template.with_text('txt-title', title)
@@ -38,11 +47,11 @@ def make_pyvo(
     speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
     speaker_vid = speaker_vid.with_fps(FPS)
 
-    # Uncomment to manually sync audio:
-    #speaker_vid = speaker_vid.with_video_offset(0.5)
+    if av_offset:
+        speaker_vid = speaker_vid.with_video_offset(av_offset)
 
-    # Uncomment to get a 30-second preview:
-    #speaker_vid = speaker_vid.trimmed(end=30)
+    if preview:
+        speaker_vid = speaker_vid.trimmed(end=30)
 
     sponsors = export_template.exported_slide('slide-sponsors', duration=6)
     sponsors = sponsors.faded_in(0.5)
@@ -59,7 +68,7 @@ def make_pyvo(
     last = last | qrcode
     last = last.faded_in(0.5)
 
-    screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode='b')
+    screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode=trim)
     screen_vid = screen_vid.muted()
 
     duration = max(screen_vid.duration, speaker_vid.duration)
