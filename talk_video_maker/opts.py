@@ -12,13 +12,14 @@ from .videos import InputVideo
 
 NOTHING = object()
 
-def fileglob(pattern, default, base):
+def fileglob(pattern, default, base='.'):
+    if pattern is None:
+        pattern = default
     result = []
     for item in glob.glob(os.path.join(base, pattern)):
         if os.path.isdir(item):
-            print(item, default)
             for subitem in glob.glob(os.path.join(base, item, default)):
-                result.append(subitem)
+                result.append(os.path.abspath(subitem))
         else:
             result.append(item)
     if not result:
@@ -43,7 +44,7 @@ class Option:
         parser.add_argument(arg_name, **arg_params)
 
     def set_arg_params(self, params):
-        if params['help'] and self.default is not NOTHING:
+        if params['help'] and self.default is not NOTHING and self.default:
             params['help'] += ' [default: {}]'.format(self.default)
 
 
@@ -120,9 +121,10 @@ def parse_options(signature, argv):
     parser = argparse.ArgumentParser(description='Create a video.',
                                      prog=argv[0])
 
-    parser.add_argument('--config', '-c', nargs='?', default=None,
+    parser.add_argument('config', nargs='?', default=None,
                         help='Configuration file ' +
                              ' (YAML, provides defaults for other arguments)' +
+                             ' (*.yaml if a directory is given)' +
                              ' [default: config.yaml (if exists)]')
 
     for param in signature.parameters.values():
@@ -135,7 +137,10 @@ def parse_options(signature, argv):
         except OSError:
             infile = None
     else:
-        infile = open(namespace.config)
+        filenames = fileglob(namespace.config, '*.yaml')
+        print('Config:', filenames)
+        [filename] = filenames
+        infile = open(filename)
     if infile:
         with infile:
             config = yaml.safe_load(infile)
