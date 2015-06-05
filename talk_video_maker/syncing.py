@@ -19,7 +19,7 @@ DTW_WINDOW_SIZE = DTW_WINDOW_LENGTH * SAMPLE_RATE // STFT_HOP_LENGTH
 thread_executor = ThreadPoolExecutor(1)  # XXX: higher value
 
 
-def synchronized(video_a, video_b, mode='pad'):
+def get_audio_offset(video_a, video_b):
     sync = SynchronizedObject(video_a, video_b)
 
     slope, intercept, r, stderr = sync.stats
@@ -31,7 +31,49 @@ def synchronized(video_a, video_b, mode='pad'):
     print('Speedup coefficient: {}'.format(r))
     print('Standard error of estimate: {}'.format(stderr))
 
-    return sync.get_results(mode=mode)
+    if stderr > 0.001:
+        raise ValueError('Audio sync: regression error too high')
+    if abs(slope - 1) > 0.001:
+        raise ValueError('Audio sync: Tracks have different speed')
+
+    return intercept * STFT_HOP_LENGTH / SAMPLE_RATE
+
+def offset_video(video_a, video_b, offset, mode='pad'):
+    if mode == 'pad':
+        result_a = _pad_video(video_a, 1, offset)
+        result_b = _pad_video(video_b, -1, offset)
+    elif mode == 'a':
+        result_a = video_a
+        result_b = _cut_video(video_b, -1, offset)
+        if video_a.duration < result_b.duration:
+            result_b = result_b.trimmed(end=video_a.duration)
+    elif mode == 'b':
+        result_a = _cut_video(video_a, 1, offset)
+        if video_b.duration < result_a.duration:
+            result_a = result_a.trimmed(end=video_b.duration)
+        result_b = video_b
+    else:
+        raise ValueError('bad mode')
+    return result_a, result_b
+
+def _pad_video(video, side, offset):
+    if offset * side <= 0:
+        return video
+    else:
+        delay = side * offset
+        blank = videos.BlankVideo(delay,
+                                    width=video.width,
+                                    height=video.height)
+        return blank + video.faded_in(0.5)
+
+def _cut_video(video, side, offset):
+    if offset * side <= 0:
+        delay = side * offset
+        return video.trimmed(start=abs(delay))
+    else:
+        return _pad_video(video, side, offset)
+
+
 
 class SynchronizedObject(objects.Object):
     ext = '.npy'
@@ -61,44 +103,6 @@ class SynchronizedObject(objects.Object):
             with open(self.filename, 'rb') as f:
                 paths = numpy.load(f)
         return regress(paths)
-
-    def get_results(self, *, mode='pad'):
-        if mode == 'pad':
-            result_a = self._pad_video(self.video_a, 1)
-            result_b = self._pad_video(self.video_b, -1)
-        elif mode == 'a':
-            result_a = self.video_a
-            result_b = self._cut_video(self.video_b, -1)
-            if self.video_a.duration < result_b.duration:
-                result_b = result_b.trimmed(end=self.video_a.duration)
-        elif mode == 'b':
-            #import pdb; pdb.set_trace()
-            result_a = self._cut_video(self.video_a, 1)
-            if self.video_b.duration < result_a.duration:
-                result_a = result_a.trimmed(end=self.video_b.duration)
-            result_b = self.video_b
-        else:
-            raise ValueError('bad mode')
-        return result_a, result_b
-
-    def _pad_video(self, video, side):
-        slope, intercept, r, stderr = self.stats
-        if intercept * side <= 0:
-            return video
-        else:
-            delay = side * intercept * STFT_HOP_LENGTH / SAMPLE_RATE
-            blank = videos.BlankVideo(delay,
-                                      width=video.width,
-                                      height=video.height)
-            return blank + video.faded_in(0.5)
-
-    def _cut_video(self, video, side):
-        slope, intercept, r, stderr = self.stats
-        if intercept * side <= 0:
-            delay = side * intercept * STFT_HOP_LENGTH / SAMPLE_RATE
-            return video.trimmed(start=abs(delay))
-        else:
-            return self._pad_video(video, side)
 
 
 def get_data(video_a, video_b):

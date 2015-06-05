@@ -1,7 +1,7 @@
 import os.path
 
 from talk_video_maker import mainfunc, opts, qr
-from talk_video_maker.syncing import synchronized
+from talk_video_maker.syncing import offset_video, get_audio_offset
 
 FPS = 25
 
@@ -41,6 +41,9 @@ def make_pyvo(
         av_offset: opts.FloatOption(
             default=0,
             help='Audio/Video offset correction for the speaker video'),
+        screen_offset: opts.FloatOption(
+            default=None,
+            help='Manual time offset of the screencast'),
         speaker_only: opts.FlagOption(
             help='Only use the speaker video'),
         logo: opts.TextOption(
@@ -54,9 +57,9 @@ def make_pyvo(
         template = template.with_text('txt-date' + n, date.strftime('%Y-%m-%d'))
     template = template.with_text('txt-url', url)
 
-    if not screen_vid:
+    if not screen_vid and not speaker_only:
         raise ValueError('No screen video')
-    if not speaker_vid and not speaker_only:
+    if not speaker_vid:
         raise ValueError('No speaker video')
 
     export_template = template
@@ -87,12 +90,12 @@ def make_pyvo(
     if av_offset:
         speaker_vid = speaker_vid.with_video_offset(av_offset)
 
-    if preview:
-        speaker_vid = speaker_vid.trimmed(end=30)
-
     if speaker_only:
         speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
         speaker_vid = speaker_vid.with_fps(FPS)
+
+        if preview:
+            speaker_vid = speaker_vid.trimmed(end=30)
 
         duration = speaker_vid.duration
 
@@ -101,7 +104,7 @@ def make_pyvo(
             info_overlay |= apply_logo(template, logo, info_overlay.duration, 'logo2', 'vid-only')
         info_overlay = info_overlay.faded_out(1)
 
-        main = speaker_vid
+        main = speaker_vid | info_overlay
     else:
         speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
         speaker_vid = speaker_vid.with_fps(FPS)
@@ -109,7 +112,18 @@ def make_pyvo(
         screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
         screen_vid = screen_vid.with_fps(FPS)
 
-        screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode=trim)
+        if screen_offset is None:
+            if not any(s.type == 'audio' for s in screen_vid.streams):
+                raise ValueError('screencast has no audio, specify screen_offset manually')
+            screen_offset = get_audio_offset(screen_vid, speaker_vid)
+
+        screen_vid, speaker_vid = offset_video(screen_vid, speaker_vid,
+                                               screen_offset, mode=trim)
+
+        if preview:
+            speaker_vid = speaker_vid.trimmed(end=30)
+            screen_vid = screen_vid.trimmed(end=30)
+
         screen_vid = screen_vid.muted()
 
         duration = max(screen_vid.duration, speaker_vid.duration)
@@ -117,12 +131,8 @@ def make_pyvo(
         page = export_template.exported_slide(duration=duration)
         if logo:
             page |= apply_logo(template, logo, page.duration, 'logo')
-        main = page | speaker_vid
+        main = page | speaker_vid | screen_vid
 
-    if speaker_only:
-        main = main | info_overlay
-    else:
-        main = main | screen_vid
     main = main.faded_out(0.5)
     main = main + sponsors + last
 

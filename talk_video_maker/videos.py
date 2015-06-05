@@ -185,7 +185,7 @@ class AVObject(objects.Object):
              '-c:a', self.acodec,
              '-b:a', '240k',
              '-crf', '30',
-             '-maxrate', '500k',
+             #'-maxrate', '500k',
              '-bufsize', '1835k',
              '-strict', '-2',
              ] + maps + [
@@ -503,7 +503,7 @@ def filter_streams(streams, types, name, args):
             yield stream
 
 
-def filter_movie(filename, stream_specs=('dv', 'da'), duration=None, loop=None):
+def filter_movie(filename, stream_specs=None, duration=None, loop=None):
     outputs = []
     info = json.loads(run([
         'ffprobe',
@@ -513,6 +513,10 @@ def filter_movie(filename, stream_specs=('dv', 'da'), duration=None, loop=None):
         filename
     ]).decode('utf-8'))
     print(info)
+    if stream_specs is None:
+        stream_specs = ('dv', )
+        if any(s['codec_type'] == 'audio' for s in info['streams']):
+            stream_specs = ('dv', 'da')
     args = {'filename': filename, 'streams': '+'.join(stream_specs)}
     if loop:
         args['loop'] = loop

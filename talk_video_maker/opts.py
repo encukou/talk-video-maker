@@ -9,8 +9,11 @@ import yaml
 from .templates import InputTemplate
 from .videos import InputVideo
 
+class Nothing:
+    def __bool__(self):
+        return False
 
-NOTHING = object()
+NOTHING = Nothing()
 
 def fileglob(pattern, default, base='.'):
     if pattern is None:
@@ -71,6 +74,8 @@ class VideoOption(Option):
         if isinstance(value, str):
             filenames = fileglob(value, self.default, base)
             inputs = [InputVideo(filename=n) for n in filenames]
+            if not inputs:
+                return None
             value = functools.reduce(operator.add, inputs)
         return value
 
@@ -89,7 +94,6 @@ class FlagOption(Option):
 
     def set_arg_params(self, params):
         params.setdefault('action', 'store_true')
-        params['default'] = False
         super().set_arg_params(params)
 
     def coerce(self, value, all_opts):
@@ -103,7 +107,8 @@ class FloatOption(Option):
         super().set_arg_params(params)
 
     def coerce(self, value, all_opts):
-        return float(value)
+        if value is not None:
+            return float(value)
 
 
 class DateOption(Option):
