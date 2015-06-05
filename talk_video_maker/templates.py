@@ -41,9 +41,9 @@ class Template(objects.Object):
         with open(filename, 'wb') as f:
             f.write(str)
 
-    def exported_slide(self, id=None, *, duration):
+    def exported_slide(self, id=None, width=None, height=None, *, duration):
         from . import videos
-        pic = self.exported_picture(id)
+        pic = self.exported_picture(id, width=width, height=height)
         return videos.make_image_video(pic, duration)
 
     def exported_page(self):
@@ -132,7 +132,10 @@ class ReducedTemplate(ModifiedTemplate):
         dom = self.parent._dom_copy()
         xpath = './/*[@id="{}"]'.format(self.id)
         for elem in dom.xpath(xpath):
-            elem.find('..').remove(elem)
+            if 'style' in elem.attrib:
+                elem.attrib['style'] += ';opacity:0'
+            else:
+                elem.attrib['style'] = 'opacity:0'
         return dom
 
     def __repr__(self):

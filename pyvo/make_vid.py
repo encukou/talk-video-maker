@@ -1,14 +1,26 @@
-import pprint
+import os.path
 
 from talk_video_maker import mainfunc, opts, qr
 from talk_video_maker.syncing import synchronized
 
 FPS = 25
 
+DEFAULT_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                'pyvo.svg')
+
+def apply_logo(template, logo_name, duration, logo_elem, page_elem=None):
+    sizes = template.element_sizes[logo_elem]
+    logo_overlay = template.exported_slide(
+        'logo-' + logo_name, duration=duration,
+        width=sizes['w'], height=sizes['h'])
+    logo_overlay = logo_overlay.resized_by_template(
+        template, logo_elem, page_elem)
+    return logo_overlay
+
 @mainfunc(__name__)
 def make_pyvo(
         template: opts.TemplateOption(
-            default='../pyvo.svg', help='Main template'),
+            default=DEFAULT_TEMPLATE, help='Main template'),
         screen_vid: opts.VideoOption(
             default='*.ogv',
             help='Video file with the screen grab'),
@@ -29,29 +41,33 @@ def make_pyvo(
         av_offset: opts.FloatOption(
             default=0,
             help='Audio/Video offset correction for the speaker video'),
+        speaker_only: opts.FlagOption(
+            help='Only use the speaker video'),
+        logo: opts.TextOption(
+            default='',
+            help='Pyvo logo variant (can be "tuplak", "ruby")'),
         ):
-    template = template.with_text('txt-speaker', speaker + ':')
-    template = template.with_text('txt-title', title)
-    template = template.with_text('txt-event', event)
-    template = template.with_text('txt-date', date.strftime('%Y-%m-%d'))
+    for n in '', '2':
+        template = template.with_text('txt-speaker' + n, speaker + ':')
+        template = template.with_text('txt-title' + n, title)
+        template = template.with_text('txt-event' + n, event)
+        template = template.with_text('txt-date' + n, date.strftime('%Y-%m-%d'))
     template = template.with_text('txt-url', url)
+
+    if not screen_vid:
+        raise ValueError('No screen video')
+    if not speaker_vid and not speaker_only:
+        raise ValueError('No speaker video')
 
     export_template = template
     export_template = export_template.without('vid-screen')
     export_template = export_template.without('vid-speaker')
     export_template = export_template.without('qrcode')
+    export_template = export_template.without('vid-only')
 
-    screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
-    screen_vid = screen_vid.with_fps(FPS)
-
-    speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
-    speaker_vid = speaker_vid.with_fps(FPS)
-
-    if av_offset:
-        speaker_vid = speaker_vid.with_video_offset(av_offset)
-
-    if preview:
-        speaker_vid = speaker_vid.trimmed(end=30)
+    if logo:
+        export_template = export_template.without('logo')
+        export_template = export_template.without('logo2')
 
     sponsors = export_template.exported_slide('slide-sponsors', duration=6)
     sponsors = sponsors.faded_in(0.5)
@@ -68,14 +84,45 @@ def make_pyvo(
     last = last | qrcode
     last = last.faded_in(0.5)
 
-    screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode=trim)
-    screen_vid = screen_vid.muted()
+    if av_offset:
+        speaker_vid = speaker_vid.with_video_offset(av_offset)
 
-    duration = max(screen_vid.duration, speaker_vid.duration)
+    if preview:
+        speaker_vid = speaker_vid.trimmed(end=30)
 
-    page = export_template.exported_slide(duration=duration)
+    if speaker_only:
+        speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
+        speaker_vid = speaker_vid.with_fps(FPS)
 
-    main = page | screen_vid | speaker_vid
+        duration = speaker_vid.duration
+
+        info_overlay = export_template.exported_slide('vid-only', duration=min(duration, 10))
+        if logo:
+            info_overlay |= apply_logo(template, logo, info_overlay.duration, 'logo2', 'vid-only')
+        info_overlay = info_overlay.faded_out(1)
+
+        main = speaker_vid
+    else:
+        speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
+        speaker_vid = speaker_vid.with_fps(FPS)
+
+        screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
+        screen_vid = screen_vid.with_fps(FPS)
+
+        screen_vid, speaker_vid = synchronized(screen_vid, speaker_vid, mode=trim)
+        screen_vid = screen_vid.muted()
+
+        duration = max(screen_vid.duration, speaker_vid.duration)
+
+        page = export_template.exported_slide(duration=duration)
+        if logo:
+            page |= apply_logo(template, logo, page.duration, 'logo')
+        main = page | speaker_vid
+
+    if speaker_only:
+        main = main | info_overlay
+    else:
+        main = main | screen_vid
     main = main.faded_out(0.5)
     main = main + sponsors + last
 
@@ -83,6 +130,5 @@ def make_pyvo(
     result = blank | main
 
     print(result.graph)
-    exit(result.filename)
 
     return result

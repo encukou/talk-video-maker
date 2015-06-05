@@ -18,7 +18,8 @@ def mainfunc(name):
         if name == '__main__':
             options = opts.parse_options(func.__signature__, sys.argv)
             pprint.pprint({'Options': options})
-            wrapped(**options)
+            retval = wrapped(**options)
+            exit(retval.filename)
 
         return wrapped
 

@@ -25,11 +25,13 @@ def fileglob(pattern, default, base):
         print('Base:', base)
         print('Pattern:', pattern)
         print('Default:', default)
-        raise LookupError('no files matching {}'.format(pattern))
+        print('Warning: no files matching {}'.format(pattern))
     return sorted(result)
 
 
 class Option:
+    need_value = True
+
     def __init__(self, *, help=None, default=NOTHING):
         self.default = default
         self.help = help
@@ -82,9 +84,11 @@ class TextOption(Option):
 
 
 class FlagOption(Option):
+    need_value = False
+
     def set_arg_params(self, params):
         params.setdefault('action', 'store_true')
-        params.setdefault('default', False)
+        params['default'] = False
         super().set_arg_params(params)
 
     def coerce(self, value, all_opts):
@@ -143,7 +147,7 @@ def parse_options(signature, argv):
         value = getattr(namespace, param.name)
         if value is NOTHING:
             value = config.get(param.name, param.annotation.default)
-        if value is NOTHING:
+        if value is NOTHING and param.annotation.need_value:
             raise LookupError('Option {!r} not specified'.format(param.name))
         args[param.name] = value
 
