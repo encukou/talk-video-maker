@@ -35,16 +35,17 @@ implemented yet; sorry.)
 
 After that, just run the script, and it'll do the magic!
 
-If you need to look at any intermediate output (video, image, etc.), do::
+To return the result (or to quickly check some intermediate output -- video,
+image, etc.), do::
 
-    exit(some_object.filename)
+    return result_object
 
 and then run the script. It'll generate the file, and give you the filename.
 
 All generated files are stored in a ``__filecache__`` directory under a hash,
 so that they are not built again if needed in a subsequent run.
-If you change the talk_video_maker internals, you might need to delete the
-cache directory.
+If you change the talk_video_maker internals, or if you start running out of
+space, you might need to delete the cache directory.
 
 Pyvec-videomaker
 ----------------
