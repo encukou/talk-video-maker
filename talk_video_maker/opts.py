@@ -64,7 +64,6 @@ class TemplateOption(Option):
 
 class VideoOption(Option):
     def set_arg_params(self, params):
-        params['help'] += ' (globs accepted)'
         params.setdefault('metavar', 'FILE')
         super().set_arg_params(params)
 
@@ -122,15 +121,38 @@ class DateOption(Option):
         return value
 
 
+help_description = """
+Create a video.
+
+All options can also be specified in the configuration file, in YAML format.
+For example,
+
+    speaker: A. Knowitall
+    title: On the Meaning of Life
+    event: The Summit of Importance
+    date: 2058-04-26
+    url: http://summit.site.example/2058/talk527
+    speaker_vid: "*.AVI"
+
+Whenever filenamess are specified, they are taken relative to the config file's
+directory (or $PWD, in the case of the config file). There are two shortcuts:
+* glob: "*.MTS" means all files ending in ".MTS".
+* directories: "/somedir/" means: apply the default glob pattern for the given
+  option to that directory.
+
+"""
+
+
 def parse_options(signature, argv):
-    parser = argparse.ArgumentParser(description='Create a video.',
+    parser = argparse.ArgumentParser(description=help_description,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
                                      prog=argv[0])
 
     parser.add_argument('config', nargs='?', default=None,
                         help='Configuration file ' +
                              ' (YAML, provides defaults for other arguments)' +
-                             ' (*.yaml if a directory is given)' +
-                             ' [default: config.yaml (if exists)]')
+                             ' [default: *.yaml]',
+                        )
 
     for param in signature.parameters.values():
         param.annotation.add_arg(parser, param.name)
