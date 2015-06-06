@@ -22,6 +22,7 @@ thread_executor = ThreadPoolExecutor(1)  # XXX: higher value
 def get_audio_offset(video_a, video_b):
     sync = SynchronizedObject(video_a, video_b)
 
+    print(sync.filename)
     slope, intercept, r, stderr = sync.stats
     frames = intercept * 1
     frames_s = intercept * STFT_HOP_LENGTH / SAMPLE_RATE
@@ -31,7 +32,7 @@ def get_audio_offset(video_a, video_b):
     print('Speedup coefficient: {}'.format(r))
     print('Standard error of estimate: {}'.format(stderr))
 
-    if stderr > 0.001:
+    if stderr > 0.000001:
         raise ValueError('Audio sync: regression error too high')
     if abs(slope - 1) > 0.001:
         raise ValueError('Audio sync: Tracks have different speed')
