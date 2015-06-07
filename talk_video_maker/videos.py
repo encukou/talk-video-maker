@@ -9,13 +9,15 @@ from .objects import hash_bytes, run
 from .draw_graph import draw_graph
 
 
+FORMAT_PARAMS = {'mkv': 'matroska'}
+
 # A AVObject has multiple Streams
 # A Stream has a type: Video, Audio, Subtitle, Attachment, Data
 # A video stream has a width, height, duration, frame rate
 # An audio stream has sample rate, 
 
 class AVObject(objects.Object):
-    def __init__(self, streams, format='mp4', acodec='aac'):
+    def __init__(self, streams, format='mkv', acodec='aac'):
         streams = tuple(streams)
         for stream in streams:
             assert stream.type
@@ -180,7 +182,7 @@ class AVObject(objects.Object):
             maps.extend(['-map', '[out{}]'.format(i)])
         run(['ffmpeg',
              '-filter_complex', specs,
-             '-f', self.format,
+             '-f', FORMAT_PARAMS.get(self.format, self.format),
              '-c:v', 'libx264',
              '-c:a', self.acodec,
              '-b:a', '240k',
