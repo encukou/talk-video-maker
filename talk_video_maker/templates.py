@@ -50,20 +50,23 @@ class Template(objects.Object):
         return self.exported_picture()
 
     def exported_picture(self, id=None, width=None, height=None):
+        if width is None:
+            width = self.element_sizes[id]['w']
+        if height is None:
+            height = self.element_sizes[id]['h']
         def write_image(filename):
             args = ['inkscape',
                     self.filename,
                     '--export-png', filename,
-                    '--export-background-opacity', '0']
+                    '--export-background-opacity', '0',
+                    '--export-width', str(width),
+                    '--export-height', str(height),
+                    ]
             if id is not None:
                 args.extend(['--export-area-snap',
                              '--export-id', id])
             else:
                 args.extend(['--export-area-page'])
-            if width is not None:
-                args.extend(['--export-width', str(width)])
-            if height is not None:
-                args.extend(['--export-height', str(height)])
             run(args)
         pic_hash = hash_bytes(self.hash.encode('utf-8'),
                               id.encode('utf-8') if id else b'',
