@@ -29,11 +29,13 @@ Usage
 
 Make a template SVG file with rectangles where the videos should be, and
 assign nice IDs to those rectangles (Inkscape: right-click, Object Properties).
+An example is at pyvo/pyvo-640x480.svg
 
 Then you have to write a little script that puts the videos together.
-An example is at pyvo/make_video.py.
-(If you need something that's not in the example, then it's probably not
-implemented yet; sorry.)
+An example is at pyvo/make_vid_simple.py.
+(There's also ``make_vid.py`` which is pretty complex, handling most cases
+Pyvo videos need. If you need something that's not in *that* example, then
+it's probably not implemented yet; sorry.)
 
 After that, just run the script, and it'll do the magic!
 
