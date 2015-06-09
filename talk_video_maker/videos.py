@@ -42,18 +42,21 @@ class AVObject(objects.Object):
         print(sizes, ref_sizes)
         w = sizes['w']
         h = sizes['h']
+        return self.resized(w, h).padded(
+            sizes['x'] - ref_sizes['x'],
+            sizes['y'] - ref_sizes['y'],
+            ref_sizes['w'],
+            ref_sizes['h']
+        )
+
+    def resized(self, w, h):
         streams = self.streams
         streams = filter_streams(streams, {'video'}, 'scale', dict(w=w, h=h))
         streams = tuple(streams)
         for stream in streams:
             if stream.type == 'video':
                 stream.size = w, h
-        return AVObject(streams).padded(
-            sizes['x'] - ref_sizes['x'],
-            sizes['y'] - ref_sizes['y'],
-            ref_sizes['w'],
-            ref_sizes['h']
-        )
+        return AVObject(streams)
 
     def padded(self, x, y, w, h):
         streams = self.streams
@@ -161,6 +164,12 @@ class AVObject(objects.Object):
                 if s.type == 'video' else s for s in streams]
         streams = filter_streams(streams, {'video'}, 'setpts',
                                  {'expr': 'N/FRAME_RATE/TB'})
+        return AVObject(streams)
+
+    def sped_up(self, ratio):
+        streams = self.streams
+        streams = filter_streams(streams, {'video'}, 'setpts',
+                                 {'expr': 'PTS*{}'.format(ratio)})
         return AVObject(streams)
 
     def save_to(self, filename):
