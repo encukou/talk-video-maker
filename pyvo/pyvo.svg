@@ -928,9 +928,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.49497474"
-     inkscape:cx="3499.0996"
-     inkscape:cy="-366.28264"
+     inkscape:zoom="0.35"
+     inkscape:cx="47.965605"
+     inkscape:cy="-130.52464"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -940,9 +940,11 @@
      inkscape:window-x="24"
      inkscape:window-y="-3"
      inkscape:window-maximized="1"
-     showguides="true"
+     showguides="false"
      inkscape:guide-bbox="true"
-     inkscape:snap-bbox="true" />
+     inkscape:snap-bbox="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-global="false" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -1068,12 +1070,12 @@
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
-         y="-346.61786"
-         x="1514.9862"
-         id="image9399"
-         preserveAspectRatio="none"
+         width="328.57144"
          height="328.57144"
-         width="328.57144" />
+         preserveAspectRatio="none"
+         id="image9399"
+         x="1514.9862"
+         y="-346.61786" />
       <g
          transform="matrix(0.72218938,-0.27571945,0.27571945,0.72218938,2146.8748,-249.74479)"
          id="g9711">
@@ -1243,13 +1245,13 @@
     <image
        sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/fragaria-logo.png"
        xlink:href="fragaria-logo.png"
-       width="508"
-       height="132"
-       preserveAspectRatio="none"
-       style="fill:#ffffff;fill-opacity:1;image-rendering:optimizeQuality"
-       id="image5975"
+       y="1133.1453"
        x="711.32941"
-       y="1133.1453" />
+       id="image5975"
+       style="fill:#ffffff;fill-opacity:1;image-rendering:optimizeQuality"
+       preserveAspectRatio="none"
+       height="132"
+       width="508" />
     <rect
        y="-683"
        x="2040"
@@ -1346,12 +1348,12 @@
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
-         width="186.21173"
-         height="186.21173"
-         preserveAspectRatio="none"
-         id="image4289"
+         y="202.90514"
          x="-2027.4454"
-         y="202.90514" />
+         id="image4289"
+         preserveAspectRatio="none"
+         height="186.21173"
+         width="186.21173" />
       <g
          id="g4291"
          transform="matrix(0.40928733,-0.15625885,0.15625885,0.40928733,-1669.3344,257.80613)">
@@ -1374,12 +1376,12 @@
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
-         width="328.57144"
-         height="328.57144"
-         preserveAspectRatio="none"
-         id="image7026"
+         y="-1072.3322"
          x="49.271938"
-         y="-1072.3322" />
+         id="image7026"
+         preserveAspectRatio="none"
+         height="328.57144"
+         width="328.57144" />
       <g
          transform="matrix(0.48664556,0,0,0.48664556,136.78447,-903.93288)"
          id="g8568"
@@ -1489,12 +1491,12 @@
       <image
          sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/krygl.png"
          xlink:href="krygl.png"
-         y="-1072.3322"
-         x="425.4548"
-         id="image10128"
-         preserveAspectRatio="none"
+         width="328.57144"
          height="328.57144"
-         width="328.57144" />
+         preserveAspectRatio="none"
+         id="image10128"
+         x="425.4548"
+         y="-1072.3322" />
       <g
          style="overflow:visible"
          id="g10130"
@@ -1649,5 +1651,23 @@
          id="tspan11056"
          x="-0.40000001"
          y="-1259.6501">Alternate logos</tspan></text>
+    <rect
+       y="490.57391"
+       x="-2040"
+       height="1080"
+       width="1920"
+       id="slide-overlay"
+       style="opacity:1;fill:#666666;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:label="#rect5978" />
+    <image
+       sodipodi:absref="/home/petr/dev/talk-video-maker/pyvo/pyvec-logo.png"
+       xlink:href="pyvec-logo.png"
+       width="418.98062"
+       height="111.82497"
+       preserveAspectRatio="none"
+       style="image-rendering:optimizeQuality"
+       id="image4529"
+       x="-496.45267"
+       y="480.57391" />
   </g>
 </svg>

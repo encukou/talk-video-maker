@@ -49,6 +49,8 @@ def make_pyvo(
         logo: opts.TextOption(
             default='',
             help='Pyvo logo variant (can be "tuplak", "ruby")'),
+        praha: opts.FlagOption(
+            help='Skip sponsors slide & include Pyvec overlay'),
         ):
     for n in '', '2':
         template = template.with_text('txt-speaker' + n, speaker + ':')
@@ -62,11 +64,16 @@ def make_pyvo(
     if not speaker_vid:
         raise ValueError('No speaker video')
 
+    if praha:
+        # no overlay for PiP videos yet
+        assert speaker_only
+
     export_template = template
     export_template = export_template.without('vid-screen')
     export_template = export_template.without('vid-speaker')
     export_template = export_template.without('qrcode')
     export_template = export_template.without('vid-only')
+    export_template = export_template.without('slide-overlay')
 
     if logo:
         export_template = export_template.without('logo')
@@ -133,8 +140,13 @@ def make_pyvo(
             page |= apply_logo(template, logo, page.duration, 'logo')
         main = page | speaker_vid | screen_vid
 
+    if praha:
+        overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
+        main |= overlay
     main = main.faded_out(0.5)
-    main = main + sponsors + last
+    if not praha:
+        main += sponsors
+    main += last
 
     blank = export_template.exported_slide('slide-blank', duration=main.duration)
     result = blank | main
