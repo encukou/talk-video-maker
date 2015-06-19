@@ -142,6 +142,20 @@ class AVObject(objects.Object):
         assert streams
         return AVObject(streams)
 
+    def cropped(self, width, height, x=None, y=None):
+        streams = self.streams
+        if x is None:
+            x = "(in_w-out_w)/2"
+        if y is None:
+            y = "(in_h-out_h)/2"
+        streams = filter_streams(streams, {'video'}, 'crop',
+                                 dict(w=width, h=height, x=x, y=y))
+        streams = list(streams)
+        for stream in streams:
+            if stream.type in {'video'}:
+                stream.size = width, height
+        return AVObject(streams)
+
     def with_audio_offset(self, t):
         streams = self.streams
         if t < 0:
@@ -246,7 +260,7 @@ class InputVideo(AVObject, objects.InputObject):
         self.filename = filename
         streams = filter_movie(filename).outputs
         streams = filter_streams(streams, {'video'}, 'fps',
-                                 {'fps': '30'})
+                                 {'fps': '25'})
         streams = filter_streams(streams, {'video'}, 'format',
                                  {'pix_fmts': 'rgba|yuva420p|yuva422p|yuva444p'})
         streams = fix_pts(streams)
