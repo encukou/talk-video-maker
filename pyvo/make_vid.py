@@ -17,6 +17,12 @@ def apply_logo(template, logo_name, duration, logo_elem, page_elem=None):
         template, logo_elem, page_elem)
     return logo_overlay
 
+def make_info_overlay(template, duration, logo=None):
+    info_overlay = template.exported_slide('vid-only', duration=min(duration, 10))
+    if logo:
+        info_overlay |= apply_logo(template, logo, info_overlay.duration, 'logo2', 'vid-only')
+    return info_overlay.faded_out(1)
+
 @mainfunc(__name__)
 def make_pyvo(
         template: opts.TemplateOption(
@@ -35,7 +41,7 @@ def make_pyvo(
         trim: opts.TextOption(
             default='b',
             help='Video trimming mode ' +
-                '(a=whole screencast, b=whole speaker video, pad=both videos)'),
+                '(a=whole screencast, b=whole speaker video, pad=include both videos, intersect=include only common part)'),
         preview: opts.FlagOption(
             help='Only process a small preview of the video'),
         av_offset: opts.FloatOption(
@@ -51,6 +57,10 @@ def make_pyvo(
             help='Pyvo logo variant (can be "tuplak", "ruby")'),
         praha: opts.FlagOption(
             help='Skip sponsors slide & include Pyvec overlay'),
+        widescreen: opts.FlagOption(
+            help='Make the screencast span the whole screen, not just a 4:3 area'),
+        no_end: opts.FlagOption(
+            help='Do not include the end slides'),
         ):
     for n in '', '2':
         template = template.with_text('txt-speaker' + n, speaker + ':')
@@ -106,17 +116,15 @@ def make_pyvo(
 
         duration = speaker_vid.duration
 
-        info_overlay = export_template.exported_slide('vid-only', duration=min(duration, 10))
-        if logo:
-            info_overlay |= apply_logo(template, logo, info_overlay.duration, 'logo2', 'vid-only')
-        info_overlay = info_overlay.faded_out(1)
-
-        main = speaker_vid | info_overlay
+        main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
         speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
         speaker_vid = speaker_vid.with_fps(FPS)
 
-        screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
+        if widescreen:
+            screen_vid = screen_vid.resized_by_template(template, None)
+        else:
+            screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
         screen_vid = screen_vid.with_fps(FPS)
 
         if screen_offset is None:
@@ -137,16 +145,20 @@ def make_pyvo(
 
         page = export_template.exported_slide(duration=duration)
         if logo:
-            page |= apply_logo(template, logo, page.duration, 'logo')
-        main = page | speaker_vid | screen_vid
+            page |= apply_logo(export_template, logo, page.duration, 'logo')
+        if widescreen:
+            main = page | screen_vid | make_info_overlay(export_template, duration) | speaker_vid
+        else:
+            main = page | speaker_vid | screen_vid
 
     if praha:
         overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
         main |= overlay
     main = main.faded_out(0.5)
-    if not praha:
-        main += sponsors
-    main += last
+    if not no_end:
+        if not praha:
+            main += sponsors
+        main += last
 
     blank = export_template.exported_slide('slide-blank', duration=main.duration)
     result = blank | main
