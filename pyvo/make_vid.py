@@ -143,7 +143,10 @@ def make_pyvo(
 
         duration = max(screen_vid.duration, speaker_vid.duration)
 
-        page = export_template.exported_slide(duration=duration)
+        if widescreen:
+            page = export_template.exported_slide('slide-blank', duration=duration)
+        else:
+            page = export_template.exported_slide(duration=duration)
         if logo:
             page |= apply_logo(export_template, logo, page.duration, 'logo')
         if widescreen:
