@@ -1,9 +1,11 @@
 from setuptools import setup, Extension
 
 from Cython.Build import cythonize
+import numpy
 
 extensions = [
-    Extension("talk_video_maker.cdtw", ["cdtw.pyx"]),
+    Extension("talk_video_maker.cdtw", ["cdtw.pyx"],
+              include_dirs=[numpy.get_include()]),
 ]
 
 
