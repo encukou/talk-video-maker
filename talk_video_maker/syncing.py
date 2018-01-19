@@ -32,7 +32,7 @@ def get_audio_offset(video_a, video_b):
     print('Speedup coefficient: {}'.format(r))
     print('Standard error of estimate: {}'.format(stderr))
 
-    if stderr > 0.000001:
+    if stderr > 1e-5:
         raise ValueError('Audio sync: regression error too high')
     if abs(slope - 1) > 0.001:
         raise ValueError('Audio sync: Tracks have different speed')
