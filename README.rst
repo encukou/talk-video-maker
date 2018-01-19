@@ -9,19 +9,19 @@ Or, it will do that. Someday. So far it just creates the resulting video.
 Installation
 ------------
 
-You'll want Python 3, ffmpeg, Inkscape, Cython, and a version of librosa
-with this fix: https://github.com/bmcfee/librosa/pull/127
+You need Python 3, ffmpeg, and Inkscape.
+Inside a virtualenv, install with::
 
-Make sure you have requirements for various scientific-y libraries – some of
-those are:
+    (venv)$ pip install Cython numpy
+    (venv)$ pip install -e.
 
-* Numpy - BLAS and a C compiler
-* PyYAML - libyaml-devel
-* Scipy - a Fortran compiler
+Most ``talk-video-maker`` dependencies provide pre-compiled wheels for common
+platforms and Python versions. But if these aren't available for your system,
+you'll need to install their build-time requiremens. Some of those are:
 
-After that, you just::
-
-    python setup.py install
+* for Numpy: BLAS and a C compiler
+* for PyYAML: libyaml-devel
+* for Scipy: a Fortran compiler
 
 
 Usage
