@@ -132,7 +132,7 @@ def get_wdwt_path(data1, data2):
     path2 = [0]
     path_chunk_length = int(DTW_WINDOW_SIZE * DTW_HOP_RATIO)
     while path1[-1] < len(f1) - 1 and path2[-1] < len(f2) - 1:
-        start1, start2 = path1[-1], path2[-1]
+        start1, start2 = [int(n) for n in [path1[-1], path2[-1]]]
         print('Correlating... {}/{} {}/{} (~{}%), {} vs {}, sz {}'.format(
             len(path1), len(f1), len(path2), len(f2),
             int(min(len(path1)/len(f1), len(path2)/len(f2))*100),
