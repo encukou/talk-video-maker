@@ -63,7 +63,7 @@ def make_pyvo(
             help='Do not include the end slides'),
         ):
     for n in '', '2':
-        template = template.with_text('txt-speaker' + n, speaker + ':')
+        template = template.with_text('txt-speaker' + n, speaker + ':' if speaker else '')
         template = template.with_text('txt-title' + n, title)
         template = template.with_text('txt-event' + n, event)
         template = template.with_text('txt-date' + n, date.strftime('%Y-%m-%d'))
