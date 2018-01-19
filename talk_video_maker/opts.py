@@ -2,6 +2,7 @@ import argparse
 import glob
 import operator
 import functools
+import datetime
 import os
 
 import yaml
@@ -117,7 +118,7 @@ class DateOption(Option):
 
     def coerce(self, value, all_opts):
         if isinstance(value, str):
-            value = datetime.date.strptime(value, '%Y-%m-%d')
+            value = datetime.datetime.strptime(value, '%Y-%m-%d').date()
         return value
 
 
