@@ -62,7 +62,7 @@ def make_pyvo(
         no_end: opts.FlagOption(
             help='Do not include the end slides'),
         ):
-    for n in '', '2':
+    for n in '', '2', '3':
         template = template.with_text('txt-speaker' + n, speaker + ':' if speaker else '')
         template = template.with_text('txt-title' + n, title)
         template = template.with_text('txt-event' + n, event)
@@ -81,6 +81,8 @@ def make_pyvo(
     export_template = template
     export_template = export_template.without('vid-screen')
     export_template = export_template.without('vid-speaker')
+    export_template = export_template.without('vid-wscreen')
+    export_template = export_template.without('vid-wspeaker')
     export_template = export_template.without('qrcode')
     export_template = export_template.without('vid-only')
     export_template = export_template.without('slide-overlay')
@@ -88,6 +90,7 @@ def make_pyvo(
     if logo:
         export_template = export_template.without('logo')
         export_template = export_template.without('logo2')
+        export_template = export_template.without('logo3')
 
     sponsors = export_template.exported_slide('slide-sponsors', duration=6)
     sponsors = sponsors.faded_in(0.5)
@@ -118,13 +121,13 @@ def make_pyvo(
 
         main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
-        speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
-        speaker_vid = speaker_vid.with_fps(FPS)
-
         if widescreen:
-            screen_vid = screen_vid.resized_by_template(template, None)
+            speaker_vid = speaker_vid.resized_by_template(template, 'vid-wspeaker', 'slide-ws')
+            screen_vid = screen_vid.resized_by_template(template, 'vid-wscreen', 'slide-ws')
         else:
+            speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
             screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
+        speaker_vid = speaker_vid.with_fps(FPS)
         screen_vid = screen_vid.with_fps(FPS)
 
         if screen_offset is None:
@@ -144,15 +147,12 @@ def make_pyvo(
         duration = max(screen_vid.duration, speaker_vid.duration)
 
         if widescreen:
-            page = export_template.exported_slide('slide-blank', duration=duration)
+            page = export_template.exported_slide('slide-ws', duration=duration)
         else:
             page = export_template.exported_slide(duration=duration)
         if logo:
             page |= apply_logo(export_template, logo, page.duration, 'logo')
-        if widescreen:
-            main = page | screen_vid | make_info_overlay(export_template, duration) | speaker_vid
-        else:
-            main = page | speaker_vid | screen_vid
+        main = page | speaker_vid | screen_vid
 
     if praha:
         overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
