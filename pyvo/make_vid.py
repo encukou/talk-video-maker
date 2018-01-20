@@ -1,4 +1,6 @@
 import os.path
+import unicodedata
+import re
 
 from talk_video_maker import mainfunc, opts, qr
 from talk_video_maker.syncing import offset_video, get_audio_offset
@@ -22,6 +24,15 @@ def make_info_overlay(template, duration, logo=None):
     if logo:
         info_overlay |= apply_logo(template, logo, info_overlay.duration, 'logo2', 'vid-only')
     return info_overlay.faded_out(1)
+
+
+def slugify(text):
+    slug = unicodedata.normalize('NFKD', text)
+    slug = slug.encode('ascii', 'ignore').decode('ascii')
+    slug = re.sub(r'[^-a-zA-Z0-9]+', '_', slug).strip('_')
+    slug = re.sub(r'[_]+', '_', slug)
+    return slug
+
 
 @mainfunc(__name__)
 def make_pyvo(
@@ -61,6 +72,9 @@ def make_pyvo(
             help='Make the screencast span the whole screen, not just a 4:3 area'),
         no_end: opts.FlagOption(
             help='Do not include the end slides'),
+        outpath: opts.PathOption(
+            default='.',
+            help='Path where to put the output file'),
         ):
     for n in '', '2', '3':
         template = template.with_text('txt-speaker' + n, speaker + ':' if speaker else '')
@@ -167,5 +181,18 @@ def make_pyvo(
     result = blank | main
 
     print(result.graph)
+
+    outname = [date.strftime('%Y-%m-%d'), event, speaker, title,
+               'preview' if preview else None]
+    outname = [slugify(x) for x in outname if x]
+    outname = os.path.join(outpath, '-'.join(outname) + ".mkv")
+    num = 0
+    while os.path.exists(outname):
+        num += 1
+        outname = "{}-{}.mkv".format(outname[:-4].rstrip("-0123456789"), num)
+
+    result.save()
+    os.link(result.filename, outname)
+    print("Saved as {}".format(outname))
 
     return result
