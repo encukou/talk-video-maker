@@ -10,6 +10,7 @@ FPS = 25
 DEFAULT_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                 'pyvo.svg')
 
+
 def apply_logo(template, logo_name, duration, logo_elem, page_elem=None):
     sizes = template.element_sizes[logo_elem]
     logo_overlay = template.exported_slide(
@@ -18,6 +19,7 @@ def apply_logo(template, logo_name, duration, logo_elem, page_elem=None):
     logo_overlay = logo_overlay.resized_by_template(
         template, logo_elem, page_elem)
     return logo_overlay
+
 
 def make_info_overlay(template, duration, logo=None):
     info_overlay = template.exported_slide('vid-only', duration=min(duration, 10))
@@ -51,8 +53,9 @@ def make_pyvo(
         date: opts.DateOption(help='Date of the event'),
         trim: opts.TextOption(
             default='b',
-            help='Video trimming mode ' +
-                '(a=whole screencast, b=whole speaker video, pad=include both videos, intersect=include only common part)'),
+            help='Video trimming mode '
+                 '(a=whole screencast, b=whole speaker video, '
+                 'pad=include both videos, intersect=include only common part)'),
         preview: opts.FlagOption(
             help='Only process a small preview of the video'),
         av_offset: opts.FloatOption(
