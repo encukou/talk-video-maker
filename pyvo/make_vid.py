@@ -136,6 +136,10 @@ def make_pyvo(
 
         duration = speaker_vid.duration
 
+        # Don't know why but without the following, FFMPEG fails with a
+        # cryptic error: more samples than frame size
+        speaker_vid = speaker_vid.with_audio_offset(0.0001)
+
         main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
         if widescreen:
