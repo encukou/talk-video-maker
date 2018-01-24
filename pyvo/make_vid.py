@@ -207,14 +207,14 @@ def make_pyvo(
     outname = [date.strftime('%Y-%m-%d'), event, 'LT' if lightning else None,
                speaker, title, 'preview' if preview else None]
     outname = [slugify(x) for x in outname if x]
-    outname = os.path.join(outpath, '-'.join(outname) + ".mkv")
+    outname = os.path.join(outpath, '-'.join(outname) + '.mkv')
     num = 0
     while os.path.exists(outname):
         num += 1
-        outname = "{}-{}.mkv".format(outname[:-4].rstrip("-0123456789"), num)
+        outname = '{}-{}.mkv'.format(outname[:-4].rstrip('-0123456789'), num)
 
     result.save()
     os.link(result.filename, outname)
-    print("Saved as {}".format(outname))
+    print('Saved as {}'.format(outname))
 
     return result
