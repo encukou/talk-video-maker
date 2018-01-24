@@ -73,6 +73,8 @@ def make_pyvo(
             help='Skip sponsors slide & include Pyvec overlay'),
         widescreen: opts.FlagOption(
             help='Make the screencast span the whole screen, not just a 4:3 area'),
+        has_pillarbox: opts.FlagOption(
+            help='The screencast is pure 4:3 but recorded as 16:9'),
         no_end: opts.FlagOption(
             help='Do not include the end slides'),
         outpath: opts.PathOption(
@@ -142,6 +144,9 @@ def make_pyvo(
 
         main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
+        if has_pillarbox:
+            assert not widescreen
+            screen_vid = screen_vid.cropped(screen_vid.width*3//4, screen_vid.height)
         if widescreen:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-wspeaker', 'slide-ws')
             screen_vid = screen_vid.resized_by_template(template, 'vid-wscreen', 'slide-ws')
