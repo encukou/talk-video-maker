@@ -53,6 +53,7 @@ def make_pyvo(
         url: opts.TextOption(help='URL of the talk'),
         event: opts.TextOption(help='Name of the event'),
         date: opts.DateOption(help='Date of the event'),
+        lightning: opts.FlagOption(help='It is a lightning talk'),
         trim: opts.TextOption(
             default='b',
             help='Video trimming mode '
@@ -203,8 +204,8 @@ def make_pyvo(
 
     print(result.graph)
 
-    outname = [date.strftime('%Y-%m-%d'), event, speaker, title,
-               'preview' if preview else None]
+    outname = [date.strftime('%Y-%m-%d'), event, 'LT' if lightning else None,
+               speaker, title, 'preview' if preview else None]
     outname = [slugify(x) for x in outname if x]
     outname = os.path.join(outpath, '-'.join(outname) + ".mkv")
     num = 0
