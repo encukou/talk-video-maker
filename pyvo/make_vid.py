@@ -77,6 +77,9 @@ def make_pyvo(
             help='Make the screencast span the whole screen, not just a 4:3 area'),
         has_pillarbox: opts.FlagOption(
             help='The screencast is pure 4:3 but recorded as 16:9'),
+        screen_on_top: opts.FlagOption(
+            default=True,
+            help='Put screencast on top of speaker video'),
         no_end: opts.FlagOption(
             help='Do not include the end slides'),
         outpath: opts.PathOption(
@@ -180,7 +183,11 @@ def make_pyvo(
             page = export_template.exported_slide(duration=duration)
         if logo:
             page |= apply_logo(export_template, logo, page.duration, 'logo')
-        main = page | speaker_vid | screen_vid
+        if screen_on_top:
+            main = page | speaker_vid | screen_vid
+        else:
+            main = page | screen_vid | speaker_vid
+
 
     if praha:
         overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
