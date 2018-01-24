@@ -144,6 +144,13 @@ def make_pyvo(
 
         main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
+        speaker_vid = speaker_vid.with_fps(FPS)
+        screen_vid = screen_vid.with_fps(FPS)
+        if screen_offset is None:
+            if not any(s.type == 'audio' for s in screen_vid.streams):
+                raise ValueError('screencast has no audio, specify screen_offset manually')
+            screen_offset = get_audio_offset(screen_vid, speaker_vid, max_stderr=5e-4)
+
         if has_pillarbox:
             assert not widescreen
             screen_vid = screen_vid.cropped(screen_vid.width*3//4, screen_vid.height)
@@ -153,13 +160,6 @@ def make_pyvo(
         else:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
             screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
-        speaker_vid = speaker_vid.with_fps(FPS)
-        screen_vid = screen_vid.with_fps(FPS)
-
-        if screen_offset is None:
-            if not any(s.type == 'audio' for s in screen_vid.streams):
-                raise ValueError('screencast has no audio, specify screen_offset manually')
-            screen_offset = get_audio_offset(screen_vid, speaker_vid)
 
         screen_vid, speaker_vid = offset_video(screen_vid, speaker_vid,
                                                screen_offset, mode=trim)
