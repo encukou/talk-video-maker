@@ -183,7 +183,7 @@ def make_pyvo(
     if praha:
         overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
         main |= overlay
-    main = main.faded_out(0.5)
+    main = main.faded_out(0.5).faded_in(0.5)
     if not no_end:
         if not praha:
             main += sponsors
