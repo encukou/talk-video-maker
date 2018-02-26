@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os.path
 
 from talk_video_maker import mainfunc, opts, qr

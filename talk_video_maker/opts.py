@@ -63,6 +63,17 @@ class TemplateOption(Option):
         return value
 
 
+class PathOption(Option):
+    def set_arg_params(self, params):
+        params.setdefault('metavar', 'PATH')
+        super().set_arg_params(params)
+
+    def coerce(self, value, all_opts):
+        conf_path = all_opts.get('config') or './config.yaml'
+        base = os.path.dirname(conf_path)
+        return os.path.normpath(os.path.join(base, value))
+
+
 class VideoOption(Option):
     def set_arg_params(self, params):
         params.setdefault('metavar', 'FILE')

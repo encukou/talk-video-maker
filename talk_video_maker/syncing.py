@@ -19,7 +19,7 @@ DTW_WINDOW_SIZE = DTW_WINDOW_LENGTH * SAMPLE_RATE // STFT_HOP_LENGTH
 thread_executor = ThreadPoolExecutor(1)  # XXX: higher value
 
 
-def get_audio_offset(video_a, video_b):
+def get_audio_offset(video_a, video_b, max_stderr=1e-5, max_speed_error=1e-3):
     sync = SynchronizedObject(video_a, video_b)
 
     print(sync.filename)
@@ -32,9 +32,9 @@ def get_audio_offset(video_a, video_b):
     print('Speedup coefficient: {}'.format(r))
     print('Standard error of estimate: {}'.format(stderr))
 
-    if stderr > 1e-5:
+    if stderr > max_stderr:
         raise ValueError('Audio sync: regression error too high')
-    if abs(slope - 1) > 0.001:
+    if abs(slope - 1) > max_speed_error:
         raise ValueError('Audio sync: Tracks have different speed')
 
     return intercept * STFT_HOP_LENGTH / SAMPLE_RATE
