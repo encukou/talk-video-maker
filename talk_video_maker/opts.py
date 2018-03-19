@@ -1,7 +1,5 @@
 import argparse
 import glob
-import operator
-import functools
 import datetime
 import os
 
@@ -84,10 +82,8 @@ class VideoOption(Option):
         base = os.path.dirname(conf_path)
         if isinstance(value, str):
             filenames = fileglob(value, self.default, base)
-            inputs = [InputVideo(filename=n) for n in filenames]
-            if not inputs:
-                return None
-            value = functools.reduce(operator.add, inputs)
+            concats = "|".join(filenames)
+            value = InputVideo(filename="concat:" + concats)
         return value
 
 

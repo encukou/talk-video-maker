@@ -411,7 +411,7 @@ def generate_filter_graph(streams):
 
     def quote(s):
         d = {
-            ':': r'\:',
+            ':': r'\\:',
             '\\': r'\\\\',
             "'": r"\\\'",
             "[": r"\[",
