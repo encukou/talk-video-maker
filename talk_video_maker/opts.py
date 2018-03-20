@@ -82,8 +82,13 @@ class VideoOption(Option):
         base = os.path.dirname(conf_path)
         if isinstance(value, str):
             filenames = fileglob(value, self.default, base)
-            concats = "|".join(filenames)
-            value = InputVideo(filename="concat:" + concats)
+            if len(filenames) > 1:
+                concats = "|".join(filenames)
+                value = InputVideo(filename="concat:" + concats)
+            elif len(filenames) == 1:
+                value = InputVideo(filename=filenames[0])
+            else:
+                value = None
         return value
 
 
