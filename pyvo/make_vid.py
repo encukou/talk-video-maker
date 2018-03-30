@@ -81,6 +81,9 @@ def make_pyvo(
         screen_on_top: opts.FlagOption(
             default=True,
             help='Put screencast on top of speaker video'),
+        audio_from_screen: opts.FlagOption(
+            default=False,
+            help='Use audio from the screen recording instead of speaker recording.'),
         no_end: opts.FlagOption(
             help='Do not include the end slides'),
         outpath: opts.PathOption(
@@ -124,7 +127,7 @@ def make_pyvo(
     last = export_template.exported_slide('slide-last', duration=7)
 
     qr_sizes = template.element_sizes['qrcode']
-    last_sizes = template.element_sizes['slide-last']
+    # last_sizes = template.element_sizes['slide-last']
     qrcode = qr.TextQR(url).resized(qr_sizes['w'], qr_sizes['h'])
     qrcode = qrcode.exported_slide(duration=last.duration)
     qrcode = qrcode.resized_by_template(template, 'qrcode', 'slide-last')
@@ -135,7 +138,7 @@ def make_pyvo(
     if av_offset:
         speaker_vid = speaker_vid.with_video_offset(av_offset)
 
-    if speaker_only:
+    if speaker_only and not audio_from_screen:
         speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
         speaker_vid = speaker_vid.with_fps(FPS)
 
@@ -146,9 +149,8 @@ def make_pyvo(
 
         # Don't know why but without the following, FFMPEG fails with a
         # cryptic error: more samples than frame size
-        speaker_vid = speaker_vid.with_audio_offset(0.0001)
+        main = speaker_vid.with_audio_offset(0.0001)
 
-        main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
         speaker_vid = speaker_vid.with_fps(FPS)
         screen_vid = screen_vid.with_fps(FPS)
@@ -160,7 +162,11 @@ def make_pyvo(
         if has_pillarbox:
             assert not widescreen
             screen_vid = screen_vid.cropped(screen_vid.width*3//4, screen_vid.height)
-        if widescreen:
+
+        if speaker_only:  # Speaker only but audio from screen recording
+            speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
+            screen_on_top = False
+        elif widescreen:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-wspeaker', 'slide-ws')
             screen_vid = screen_vid.resized_by_template(template, 'vid-wscreen', 'slide-ws')
         else:
@@ -174,7 +180,10 @@ def make_pyvo(
             speaker_vid = speaker_vid.trimmed(end=30)
             screen_vid = screen_vid.trimmed(end=30)
 
-        screen_vid = screen_vid.muted()
+        if audio_from_screen:
+            speaker_vid = speaker_vid.muted()
+        else:
+            screen_vid = screen_vid.muted()
 
         duration = max(screen_vid.duration, speaker_vid.duration)
 
@@ -189,10 +198,13 @@ def make_pyvo(
         else:
             main = page | screen_vid | speaker_vid
 
+    if speaker_only:
+        main = main | make_info_overlay(export_template, duration, logo)
 
     if praha:
         overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
         main |= overlay
+
     main = main.faded_out(0.5).faded_in(0.5)
     if not no_end:
         if not praha:
