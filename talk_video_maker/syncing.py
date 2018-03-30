@@ -53,6 +53,17 @@ def offset_video(video_a, video_b, offset, mode='pad'):
         if video_b.duration < result_a.duration:
             result_a = result_a.trimmed(end=video_b.duration)
         result_b = video_b
+    elif mode == 'intersect':
+        if offset > 0:
+            result_a = video_a
+            result_b = _cut_video(video_b, -1, offset)
+        else:
+            result_a = _cut_video(video_a, 1, offset)
+            result_b = video_b
+        if result_b.duration < result_a.duration:
+            result_a = result_a.trimmed(end=result_b.duration)
+        if result_a.duration < result_b.duration:
+            result_b = result_b.trimmed(end=result_a.duration)
     else:
         raise ValueError('bad mode')
     return result_a, result_b
