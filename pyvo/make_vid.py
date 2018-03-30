@@ -159,12 +159,16 @@ def make_pyvo(
                 raise ValueError('screencast has no audio, specify screen_offset manually')
             screen_offset = get_audio_offset(screen_vid, speaker_vid, max_stderr=5e-4)
 
+        screen_vid, speaker_vid = offset_video(screen_vid, speaker_vid,
+                                               screen_offset, mode=trim)
+
         if has_pillarbox:
             assert not widescreen
             screen_vid = screen_vid.cropped(screen_vid.width*3//4, screen_vid.height)
 
         if speaker_only:  # Speaker only but audio from screen recording
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
+            screen_vid = screen_vid.muted('video')
             screen_on_top = False
         elif widescreen:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-wspeaker', 'slide-ws')
@@ -172,9 +176,6 @@ def make_pyvo(
         else:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
             screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
-
-        screen_vid, speaker_vid = offset_video(screen_vid, speaker_vid,
-                                               screen_offset, mode=trim)
 
         if preview:
             speaker_vid = speaker_vid.trimmed(end=30)
