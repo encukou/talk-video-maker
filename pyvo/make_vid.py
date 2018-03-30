@@ -4,6 +4,8 @@ import os.path
 import unicodedata
 import re
 
+from yaml import safe_dump
+
 from talk_video_maker import mainfunc, opts, qr
 from talk_video_maker.syncing import offset_video, get_audio_offset
 
@@ -229,5 +231,11 @@ def make_pyvo(
     result.save()
     os.link(result.filename, outname)
     print('Saved as {}'.format(outname))
+
+    metadata = {'speaker': speaker, 'title': title, 'date': date, 'event': event,
+                'lighting': lightning, 'url': url}
+    metaname = outname[:-3] + "yaml"
+    with open(metaname, "w") as metaf:
+        metaf.write(safe_dump(metadata, default_flow_style=False, allow_unicode=True))
 
     return result
