@@ -238,7 +238,7 @@ def make_pyvo(
     print('Saved as {}'.format(outname))
 
     metadata = {'speaker': speaker, 'title': title, 'date': date, 'event': event,
-                'lighting': lightning, 'url': url}
+                'lighting': lightning, 'url': url, 'fname': os.path.basename(outname)}
     fname, _ = os.path.splitext(outname)
     with open(fname + ".yaml", "w") as metaf:
         metaf.write(safe_dump(metadata, default_flow_style=False, allow_unicode=True))
