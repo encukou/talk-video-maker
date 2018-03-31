@@ -80,6 +80,8 @@ def make_pyvo(
             help='Make the screencast span the whole screen, not just a 4:3 area'),
         has_pillarbox: opts.FlagOption(
             help='The screencast is pure 4:3 but recorded as 16:9'),
+        has_letterbox: opts.FlagOption(
+            help='The screencast is pure 16:9 but recorded as 4:3'),
         screen_on_top: opts.FlagOption(
             default=True,
             help='Put screencast on top of speaker video'),
@@ -165,8 +167,11 @@ def make_pyvo(
                                                screen_offset, mode=trim)
 
         if has_pillarbox:
-            assert not widescreen
+            widescreen = False
             screen_vid = screen_vid.cropped(screen_vid.width*3//4, screen_vid.height)
+        if has_letterbox:
+            widescreen = True
+            screen_vid = screen_vid.cropped(screen_vid.width, screen_vid.height*3//4)
 
         if speaker_only:  # Speaker only but audio from screen recording
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
