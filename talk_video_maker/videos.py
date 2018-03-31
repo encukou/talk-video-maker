@@ -104,9 +104,12 @@ class AVObject(objects.Object):
         streams = filter_streams(streams, {'audio'}, 'aformat', args)
         return AVObject(streams, acodec='pcm_s16le', format='wav')
 
-    def muted(self, mute_type='audio'):
-        streams = [s for s in self.streams if s.type != mute_type]
+    def without_streams(self, type):
+        streams = [s for s in self.streams if s.type != type]
         return AVObject(streams)
+
+    def muted(self):
+        return self.without_streams('audio')
 
     def faded(self, duration, fade_type, start_time=0):
         streams = self.streams

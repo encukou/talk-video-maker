@@ -131,7 +131,6 @@ def make_pyvo(
     last = export_template.exported_slide('slide-last', duration=7)
 
     qr_sizes = template.element_sizes['qrcode']
-    # last_sizes = template.element_sizes['slide-last']
     qrcode = qr.TextQR(url).resized(qr_sizes['w'], qr_sizes['h'])
     qrcode = qrcode.exported_slide(duration=last.duration)
     qrcode = qrcode.resized_by_template(template, 'qrcode', 'slide-last')
@@ -175,7 +174,7 @@ def make_pyvo(
 
         if speaker_only:  # Speaker only but audio from screen recording
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
-            screen_vid = screen_vid.muted('video')
+            screen_vid = screen_vid.without_streams('video')
             screen_on_top = False
         elif widescreen:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-wspeaker', 'slide-ws')
