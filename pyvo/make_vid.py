@@ -230,7 +230,8 @@ def make_pyvo(
     num = 0
     while os.path.exists(outname):
         num += 1
-        outname = '{}-{}.mkv'.format(outname[:-4].rstrip('-0123456789'), num)
+        fname, ext = os.path.splitext(outname)
+        outname = '{}-{}{}'.format(fname.rstrip('-0123456789'), num, ext)
 
     result.save()
     os.link(result.filename, outname)
@@ -238,8 +239,8 @@ def make_pyvo(
 
     metadata = {'speaker': speaker, 'title': title, 'date': date, 'event': event,
                 'lighting': lightning, 'url': url}
-    metaname = outname[:-3] + "yaml"
-    with open(metaname, "w") as metaf:
+    fname, _ = os.path.splitext(outname)
+    with open(fname + ".yaml", "w") as metaf:
         metaf.write(safe_dump(metadata, default_flow_style=False, allow_unicode=True))
 
     return result
