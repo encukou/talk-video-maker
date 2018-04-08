@@ -4,6 +4,8 @@ import os.path
 import unicodedata
 import re
 
+from yaml import safe_dump
+
 from talk_video_maker import mainfunc, opts, qr
 from talk_video_maker.syncing import offset_video, get_audio_offset
 
@@ -78,9 +80,14 @@ def make_pyvo(
             help='Make the screencast span the whole screen, not just a 4:3 area'),
         has_pillarbox: opts.FlagOption(
             help='The screencast is pure 4:3 but recorded as 16:9'),
+        has_letterbox: opts.FlagOption(
+            help='The screencast is pure 16:9 but recorded as 4:3'),
         screen_on_top: opts.FlagOption(
             default=True,
             help='Put screencast on top of speaker video'),
+        audio_from_screen: opts.FlagOption(
+            default=False,
+            help='Use audio from the screen recording instead of speaker recording.'),
         no_end: opts.FlagOption(
             help='Do not include the end slides'),
         outpath: opts.PathOption(
@@ -124,7 +131,6 @@ def make_pyvo(
     last = export_template.exported_slide('slide-last', duration=7)
 
     qr_sizes = template.element_sizes['qrcode']
-    last_sizes = template.element_sizes['slide-last']
     qrcode = qr.TextQR(url).resized(qr_sizes['w'], qr_sizes['h'])
     qrcode = qrcode.exported_slide(duration=last.duration)
     qrcode = qrcode.resized_by_template(template, 'qrcode', 'slide-last')
@@ -135,7 +141,7 @@ def make_pyvo(
     if av_offset:
         speaker_vid = speaker_vid.with_video_offset(av_offset)
 
-    if speaker_only:
+    if speaker_only and not audio_from_screen:
         speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
         speaker_vid = speaker_vid.with_fps(FPS)
 
@@ -146,9 +152,8 @@ def make_pyvo(
 
         # Don't know why but without the following, FFMPEG fails with a
         # cryptic error: more samples than frame size
-        speaker_vid = speaker_vid.with_audio_offset(0.0001)
+        main = speaker_vid.with_audio_offset(0.0001)
 
-        main = speaker_vid | make_info_overlay(export_template, duration, logo)
     else:
         speaker_vid = speaker_vid.with_fps(FPS)
         screen_vid = screen_vid.with_fps(FPS)
@@ -157,24 +162,35 @@ def make_pyvo(
                 raise ValueError('screencast has no audio, specify screen_offset manually')
             screen_offset = get_audio_offset(screen_vid, speaker_vid, max_stderr=5e-4)
 
+        screen_vid, speaker_vid = offset_video(screen_vid, speaker_vid,
+                                               screen_offset, mode=trim)
+
         if has_pillarbox:
-            assert not widescreen
+            widescreen = False
             screen_vid = screen_vid.cropped(screen_vid.width*3//4, screen_vid.height)
-        if widescreen:
+        if has_letterbox:
+            widescreen = True
+            screen_vid = screen_vid.cropped(screen_vid.width, screen_vid.height*3//4)
+
+        if speaker_only:  # Speaker only but audio from screen recording
+            speaker_vid = speaker_vid.resized_by_template(template, 'vid-only', 'vid-only')
+            screen_vid = screen_vid.without_streams('video')
+            screen_on_top = False
+        elif widescreen:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-wspeaker', 'slide-ws')
             screen_vid = screen_vid.resized_by_template(template, 'vid-wscreen', 'slide-ws')
         else:
             speaker_vid = speaker_vid.resized_by_template(template, 'vid-speaker')
             screen_vid = screen_vid.resized_by_template(template, 'vid-screen')
 
-        screen_vid, speaker_vid = offset_video(screen_vid, speaker_vid,
-                                               screen_offset, mode=trim)
-
         if preview:
             speaker_vid = speaker_vid.trimmed(end=30)
             screen_vid = screen_vid.trimmed(end=30)
 
-        screen_vid = screen_vid.muted()
+        if audio_from_screen:
+            speaker_vid = speaker_vid.muted()
+        else:
+            screen_vid = screen_vid.muted()
 
         duration = max(screen_vid.duration, speaker_vid.duration)
 
@@ -189,10 +205,13 @@ def make_pyvo(
         else:
             main = page | screen_vid | speaker_vid
 
+    if speaker_only:
+        main = main | make_info_overlay(export_template, duration, logo)
 
     if praha:
         overlay = export_template.exported_slide('slide-overlay', duration=main.duration)
         main |= overlay
+
     main = main.faded_out(0.5).faded_in(0.5)
     if not no_end:
         if not praha:
@@ -211,10 +230,17 @@ def make_pyvo(
     num = 0
     while os.path.exists(outname):
         num += 1
-        outname = '{}-{}.mkv'.format(outname[:-4].rstrip('-0123456789'), num)
+        fname, ext = os.path.splitext(outname)
+        outname = '{}-{}{}'.format(fname.rstrip('-0123456789'), num, ext)
 
     result.save()
     os.link(result.filename, outname)
     print('Saved as {}'.format(outname))
+
+    metadata = {'speaker': speaker, 'title': title, 'date': date, 'event': event,
+                'lightning': lightning, 'url': url, 'fname': os.path.basename(outname)}
+    fname, _ = os.path.splitext(outname)
+    with open(fname + ".yaml", "w") as metaf:
+        metaf.write(safe_dump(metadata, default_flow_style=False, allow_unicode=True))
 
     return result
