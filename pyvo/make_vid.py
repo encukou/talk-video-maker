@@ -56,6 +56,8 @@ def make_pyvo(
         event: opts.TextOption(help='Name of the event'),
         date: opts.DateOption(help='Date of the event'),
         lightning: opts.FlagOption(help='It is a lightning talk'),
+        language: opts.TextOption(help='Language of the audio track', default=''),
+        language_slides: opts.TextOption(help='Language of the slides', default=''),
         trim: opts.TextOption(
             default='b',
             help='Video trimming mode '
@@ -239,6 +241,11 @@ def make_pyvo(
 
     metadata = {'speaker': speaker, 'title': title, 'date': date, 'event': event,
                 'lightning': lightning, 'url': url, 'fname': os.path.basename(outname)}
+    if language:
+        metadata['language'] = {
+                'audio': language,
+                'slides': language_slides if language_slides else language,
+                }
     fname, _ = os.path.splitext(outname)
     with open(fname + ".yaml", "w") as metaf:
         metaf.write(safe_dump(metadata, default_flow_style=False, allow_unicode=True))
